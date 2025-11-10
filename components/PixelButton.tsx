@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, Pressable, View, Platform } from 'react-native';
+import { Platform, StyleSheet, Text, Pressable, View} from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
@@ -254,19 +254,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     ...Platform.select({
       web: {
-        // @ts-expect-error - textShadow es válido en web pero no está en los tipos de RN
-        textShadow: '2px 2px 0px #2C1A0A',
-      },
+        textShadow: '2px 2px 0px ' + GameColors.textOutline,
+      } as any,
       default: {
-        ...(Platform.OS !== 'web' && {
-      textShadowColor: GameColors.textOutline,
-          textShadowOffset: { width: 2, height: 2 },
-          textShadowRadius: 0,
+        textShadowColor: GameColors.textOutline,
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 0,
       },
-    }),
-    }),
-    ...(Platform.OS === 'web' && {
-      textShadow: '2px 2px 0px ' + GameColors.textOutline,
     }),
     letterSpacing: 1,
     zIndex: 2,
@@ -277,19 +271,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     ...Platform.select({
       web: {
-        // @ts-expect-error - textShadow es válido en web pero no está en los tipos de RN
-        textShadow: '1px 1px 0px #2C1A0A',
-      },
+        textShadow: '1px 1px 0px ' + GameColors.textOutline,
+      } as any,
       default: {
-        ...(Platform.OS !== 'web' && {
-      textShadowColor: GameColors.textOutline,
-          textShadowOffset: { width: 1, height: 1 },
-          textShadowRadius: 0,
+        textShadowColor: GameColors.textOutline,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 0,
       },
-    }),
-    }),
-    ...(Platform.OS === 'web' && {
-      textShadow: '1px 1px 0px ' + GameColors.textOutline,
     }),
     zIndex: 2,
   },

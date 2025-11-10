@@ -130,19 +130,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     ...Platform.select({
       web: {
-        // @ts-expect-error - textShadow es válido en web pero no está en los tipos de RN
-        textShadow: '1px 1px 0px #2C1A0A',
-      },
+        textShadow: '1px 1px 0px ' + GameColors.textOutline,
+      } as any,
       default: {
-        ...(Platform.OS !== 'web' && {
-      textShadowColor: GameColors.textOutline,
-          textShadowOffset: { width: 1, height: 1 },
-          textShadowRadius: 0,
+        textShadowColor: GameColors.textOutline,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 0,
       },
-    }),
-    }),
-    ...(Platform.OS === 'web' && {
-      textShadow: '1px 1px 0px ' + GameColors.textOutline,
     }),
   },
 });
