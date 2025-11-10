@@ -21,6 +21,11 @@ export default function MainScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={true}
+        bounces={false}
+        // Mejorar el manejo de eventos táctiles
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
           <Title />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
@@ -128,9 +128,14 @@ const styles = StyleSheet.create({
     fontFamily: GameFonts.pixelFont,
     fontSize: 11,
     color: '#FFFFFF',
-    textShadowColor: GameColors.textOutline,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+    ...(Platform.OS !== 'web' && {
+      textShadowColor: GameColors.textOutline,
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 0,
+    }),
+    ...(Platform.OS === 'web' && {
+      textShadow: '1px 1px 0px ' + GameColors.textOutline,
+    }),
   },
 });
 

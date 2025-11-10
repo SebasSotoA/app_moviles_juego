@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, Pressable, View, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
@@ -28,7 +28,10 @@ export function PixelButton({
   variant = 'gradient',
 }: PixelButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
+  const buttonStyle = size === 'large' ? styles.largeButton : styles.smallButton;
+  const textStyle = size === 'large' ? styles.largeText : styles.smallText;
 
+  // Manejar eventos de presión de forma más robusta
   const handlePressIn = () => {
     setIsPressed(true);
   };
@@ -41,29 +44,58 @@ export function PixelButton({
     if (onPress) {
       onPress();
     }
+    // Asegurar que el estado se resetee después del press
+    setIsPressed(false);
   };
 
-  const buttonStyle = size === 'large' ? styles.largeButton : styles.smallButton;
-  const textStyle = size === 'large' ? styles.largeText : styles.smallText;
-
   if (variant === 'image' && imageSource) {
+    const imageStyle = size === 'large' ? styles.largeImageButton : styles.smallImageButton;
+    
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={1}
         style={[
           styles.imageButtonContainer,
           size === 'small' && styles.imageButtonContainerSmall,
         ]}
+        // Área táctil más grande para mejor UX en móvil
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        // Deshabilitar el efecto ripple de Android
+        android_ripple={null}
       >
-        <Image
-          source={isPressed && pressedImageSource ? pressedImageSource : imageSource}
-          style={size === 'large' ? styles.largeImageButton : styles.smallImageButton}
-          contentFit="contain"
-        />
-      </TouchableOpacity>
+        <View style={[styles.imageWrapper, imageStyle]}>
+          {/* Imagen normal - siempre renderizada */}
+          <Image
+            source={imageSource}
+            style={[
+              imageStyle,
+              styles.buttonImage,
+              styles.imageBase,
+              { opacity: isPressed && pressedImageSource ? 0 : 1 },
+            ]}
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={0}
+          />
+          {/* Imagen presionada - solo si existe */}
+          {pressedImageSource && (
+            <Image
+              source={pressedImageSource}
+              style={[
+                imageStyle,
+                styles.buttonImage,
+                styles.imagePressedOverlay,
+                { opacity: isPressed ? 1 : 0 },
+              ]}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={0}
+            />
+          )}
+        </View>
+      </Pressable>
     );
   }
 
@@ -72,12 +104,18 @@ export function PixelButton({
     <View style={styles.buttonWrapper}>
       {/* Sombra para efecto 3D */}
       <View style={[styles.shadowLayer, size === 'large' && styles.shadowLayerLarge]} />
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={0.95}
-        style={buttonStyle}
+        style={[
+          buttonStyle,
+          isPressed && styles.pressedButton,
+        ]}
+        // Área táctil más grande para mejor UX en móvil
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        // Deshabilitar el efecto ripple de Android
+        android_ripple={null}
       >
         {/* @ts-expect-error - expo-linear-gradient compatibility with React 19 */}
         <LinearGradient
@@ -105,7 +143,7 @@ export function PixelButton({
             <Text style={[textStyle, isPressed && styles.pressedText]}>{label}</Text>
           </View>
         </LinearGradient>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -214,9 +252,14 @@ const styles = StyleSheet.create({
     fontFamily: GameFonts.pixelFont,
     fontSize: 16,
     color: '#FFFFFF',
-    textShadowColor: GameColors.textOutline,
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 0,
+    ...(Platform.OS !== 'web' && {
+      textShadowColor: GameColors.textOutline,
+      textShadowOffset: { width: 2, height: 2 },
+      textShadowRadius: 0,
+    }),
+    ...(Platform.OS === 'web' && {
+      textShadow: '2px 2px 0px ' + GameColors.textOutline,
+    }),
     letterSpacing: 1,
     zIndex: 2,
   },
@@ -224,13 +267,24 @@ const styles = StyleSheet.create({
     fontFamily: GameFonts.pixelFont,
     fontSize: GameFonts.sizes.badge,
     color: '#FFFFFF',
-    textShadowColor: GameColors.textOutline,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+    ...(Platform.OS !== 'web' && {
+      textShadowColor: GameColors.textOutline,
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 0,
+    }),
+    ...(Platform.OS === 'web' && {
+      textShadow: '1px 1px 0px ' + GameColors.textOutline,
+    }),
     zIndex: 2,
   },
   pressedText: {
     opacity: 0.95,
+  },
+  pressedContainer: {
+    opacity: 0.95,
+  },
+  pressedButton: {
+    opacity: 0.98,
   },
   imageButtonContainer: {
     alignItems: 'center',
@@ -238,6 +292,24 @@ const styles = StyleSheet.create({
   },
   imageButtonContainerSmall: {
     marginHorizontal: 6,
+  },
+  imageWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonImage: {
+    // Estilos aplicados dinámicamente
+  },
+  imageBase: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  imagePressedOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   largeImageButton: {
     width: 240,

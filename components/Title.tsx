@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
 
@@ -29,9 +29,14 @@ const styles = StyleSheet.create({
     fontFamily: GameFonts.pixelFont,
     fontSize: 10,
     color: GameColors.textBrown,
-    textShadowColor: GameColors.textOutline,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+    ...(Platform.OS !== 'web' && {
+      textShadowColor: GameColors.textOutline,
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 0,
+    }),
+    ...(Platform.OS === 'web' && {
+      textShadow: '1px 1px 0px ' + GameColors.textOutline,
+    }),
     marginBottom: 4,
     letterSpacing: 0.5,
   },
@@ -40,10 +45,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: GameColors.textGold,
     fontWeight: 'bold',
-    // Efecto 3D con múltiples sombras
-    textShadowColor: GameColors.textGoldDark,
-    textShadowOffset: { width: 3, height: 3 },
-    textShadowRadius: 0,
+    ...(Platform.OS !== 'web' && {
+      textShadowColor: GameColors.textGoldDark,
+      textShadowOffset: { width: 3, height: 3 },
+      textShadowRadius: 0,
+    }),
+    ...(Platform.OS === 'web' && {
+      textShadow: '3px 3px 0px ' + GameColors.textGoldDark,
+    }),
     letterSpacing: 1.5,
     marginBottom: 4,
   },
