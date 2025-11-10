@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Platform } from 'react-native';
+import { Platform, StyleSheet, Text, View, Platform } from 'react-native';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
 
@@ -24,10 +24,18 @@ const styles = StyleSheet.create({
     fontFamily: GameFonts.pixelFont,
     fontSize: GameFonts.sizes.footer,
     color: GameColors.footerText,
-    ...(Platform.OS !== 'web' && {
+    ...Platform.select({
+      web: {
+        // @ts-expect-error - textShadow es válido en web pero no está en los tipos de RN
+        textShadow: '1px 1px 0px #2C1A0A',
+      },
+      default: {
+        ...(Platform.OS !== 'web' && {
       textShadowColor: GameColors.textOutline,
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 0,
+          textShadowOffset: { width: 1, height: 1 },
+          textShadowRadius: 0,
+      },
+    }),
     }),
     ...(Platform.OS === 'web' && {
       textShadow: '1px 1px 0px ' + GameColors.textOutline,

@@ -10,21 +10,21 @@ import { GameFonts } from '@/constants/gameFonts';
  * Gradiente vertical para "MEMORY QUEST" con efecto 3D
  */
 export function Title() {
-  // Dimensiones para los SVG
-  const subtitleWidth = 180;
+  // Dimensiones para los SVG - anchos aumentados para evitar recorte
+  const subtitleWidth = 300;
   const subtitleHeight = 36;
-  const titleWidth = 240;
+  const titleWidth = 340;
   const titleHeight = 40;
 
   return (
     <View style={styles.container}>
       <View style={styles.subtitleContainer}>
-        <Svg width={subtitleWidth} height={subtitleHeight}>
+        <Svg width={subtitleWidth} height={subtitleHeight} viewBox={`0 0 ${subtitleWidth} ${subtitleHeight}`} preserveAspectRatio="xMidYMid meet">
           {/* Sombra para efecto 3D */}
           <SvgText
             x="50%"
             y={subtitleHeight / 2 + 8}
-            fontSize="20"
+            fontSize="2"
             fontFamily={GameFonts.pixelFont}
             fontWeight="normal"
             fill="#9D6631"
@@ -37,7 +37,7 @@ export function Title() {
           <SvgText
             x="50%"
             y={subtitleHeight / 2 + 7}
-            fontSize="20"
+            fontSize="24"
             fontFamily={GameFonts.pixelFont}
             fontWeight="normal"
             fill="#FFFFFF"
@@ -50,7 +50,7 @@ export function Title() {
         </Svg>
       </View>
       <View style={styles.titleContainer}>
-        <Svg width={titleWidth} height={titleHeight}>
+        <Svg width={titleWidth} height={titleHeight} viewBox={`0 0 ${titleWidth} ${titleHeight}`} preserveAspectRatio="xMidYMid meet">
           <Defs>
             <LinearGradient id="titleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <Stop offset="0%" stopColor="#BD9A4B" stopOpacity="1" />
@@ -107,12 +107,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 36,
     marginBottom: 4,
+    overflow: 'visible',
   },
   titleContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     height: 40,
     marginBottom: 4,
+    overflow: 'visible',
   },
   underline: {
     width: 130,
