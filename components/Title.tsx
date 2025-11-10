@@ -1,19 +1,96 @@
 import React from 'react';
-import { StyleSheet, Text, View, Platform } from 'react-native';
-import { GameColors } from '@/constants/gameColors';
+import { StyleSheet, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Stop, Text as SvgText, TSpan } from 'react-native-svg';
 import { GameFonts } from '@/constants/gameFonts';
 
 /**
  * Componente del título del juego
  * "Mobile dev's MEMORY QUEST"
- * Fuente pixelada, bold para "MEMORY QUEST"
- * Efecto 3D con sombras para dar profundidad
+ * Fuente pixelada PressStart2P con estilos específicos
+ * Gradiente vertical para "MEMORY QUEST" con efecto 3D
  */
 export function Title() {
+  // Dimensiones para los SVG
+  const subtitleWidth = 180;
+  const subtitleHeight = 36;
+  const titleWidth = 240;
+  const titleHeight = 40;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.subtitle}>Mobile dev's</Text>
-      <Text style={styles.title}>MEMORY QUEST</Text>
+      <View style={styles.subtitleContainer}>
+        <Svg width={subtitleWidth} height={subtitleHeight}>
+          {/* Sombra para efecto 3D */}
+          <SvgText
+            x="50%"
+            y={subtitleHeight / 2 + 8}
+            fontSize="20"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="#9D6631"
+            textAnchor="middle"
+            opacity="0.3"
+          >
+            <TSpan x="50%" dy="1">Mobile dev&apos;s</TSpan>
+          </SvgText>
+          {/* Texto principal */}
+          <SvgText
+            x="50%"
+            y={subtitleHeight / 2 + 7}
+            fontSize="20"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="#FFFFFF"
+            textAnchor="middle"
+            stroke="#9D6631"
+            strokeWidth="1"
+          >
+            <TSpan x="50%" dy="0">Mobile dev&apos;s</TSpan>
+          </SvgText>
+        </Svg>
+      </View>
+      <View style={styles.titleContainer}>
+        <Svg width={titleWidth} height={titleHeight}>
+          <Defs>
+            <LinearGradient id="titleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor="#BD9A4B" stopOpacity="1" />
+              <Stop offset="0%" stopColor="#ECD8A3" stopOpacity="1" />
+              <Stop offset="3%" stopColor="#FBF5D1" stopOpacity="1" />
+              <Stop offset="6%" stopColor="#EAC885" stopOpacity="1" />
+              <Stop offset="17%" stopColor="#FFF2DB" stopOpacity="1" />
+              <Stop offset="96%" stopColor="#94641E" stopOpacity="1" />
+              <Stop offset="99%" stopColor="#FFF0DA" stopOpacity="1" />
+            </LinearGradient>
+          </Defs>
+          {/* Sombra oscura para efecto 3D (abajo y derecha) */}
+          <SvgText
+            x="51%"
+            y={titleHeight / 2 + 10}
+            fontSize="24"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="#522B04"
+            textAnchor="middle"
+            opacity="0.6"
+          >
+            <TSpan x="51%" dy="1">MEMORY QUEST</TSpan>
+          </SvgText>
+          {/* Texto principal con gradiente */}
+          <SvgText
+            x="50%"
+            y={titleHeight / 2 + 9}
+            fontSize="24"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="url(#titleGradient)"
+            textAnchor="middle"
+            stroke="#522B04"
+            strokeWidth="1"
+          >
+            <TSpan x="50%" dy="0">MEMORY QUEST</TSpan>
+          </SvgText>
+        </Svg>
+      </View>
       <View style={styles.underline} />
     </View>
   );
@@ -25,35 +102,16 @@ const styles = StyleSheet.create({
     marginTop: 32,
     marginBottom: 24,
   },
-  subtitle: {
-    fontFamily: GameFonts.pixelFont,
-    fontSize: 10,
-    color: GameColors.textBrown,
-    ...(Platform.OS !== 'web' && {
-      textShadowColor: GameColors.textOutline,
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 0,
-    }),
-    ...(Platform.OS === 'web' && {
-      textShadow: '1px 1px 0px ' + GameColors.textOutline,
-    }),
+  subtitleContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
     marginBottom: 4,
-    letterSpacing: 0.5,
   },
-  title: {
-    fontFamily: GameFonts.pixelFont,
-    fontSize: 18,
-    color: GameColors.textGold,
-    fontWeight: 'bold',
-    ...(Platform.OS !== 'web' && {
-      textShadowColor: GameColors.textGoldDark,
-      textShadowOffset: { width: 3, height: 3 },
-      textShadowRadius: 0,
-    }),
-    ...(Platform.OS === 'web' && {
-      textShadow: '3px 3px 0px ' + GameColors.textGoldDark,
-    }),
-    letterSpacing: 1.5,
+  titleContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
     marginBottom: 4,
   },
   underline: {
