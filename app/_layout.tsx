@@ -29,6 +29,9 @@ export default function RootLayout() {
     <>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="select-level" options={{ headerShown: false }} />
+        <Stack.Screen name="game" options={{ headerShown: false }} />
+        <Stack.Screen name="results" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="light" />
     </>

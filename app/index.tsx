@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { Title } from '@/components/Title';
@@ -14,6 +15,12 @@ import { Footer } from '@/components/Footer';
  * Combina todos los componentes en un layout vertical
  */
 export default function MainScreen() {
+  const router = useRouter();
+
+  const handlePlayPress = () => {
+    router.push('/select-level');
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <BackgroundCheckerboard />
@@ -38,10 +45,7 @@ export default function MainScreen() {
               imageSource={require('@/assets/images/buttons/playButton.png')}
               pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
               variant="image"
-              onPress={() => {
-                // TODO: Navegar a pantalla de juego
-                console.log('Play pressed');
-              }}
+              onPress={handlePlayPress}
             />
           </View>
           <View style={styles.secondaryButtonsContainer}>
