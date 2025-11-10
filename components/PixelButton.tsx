@@ -53,7 +53,10 @@ export function PixelButton({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
-        style={styles.imageButtonContainer}
+        style={[
+          styles.imageButtonContainer,
+          size === 'small' && styles.imageButtonContainerSmall,
+        ]}
       >
         <Image
           source={isPressed && pressedImageSource ? pressedImageSource : imageSource}
@@ -232,11 +235,13 @@ const styles = StyleSheet.create({
   imageButtonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  imageButtonContainerSmall: {
     marginHorizontal: 6,
   },
   largeImageButton: {
-    width: 220,
-    height: 65,
+    width: 240,
+    height: 70,
   },
   smallImageButton: {
     width: 140,

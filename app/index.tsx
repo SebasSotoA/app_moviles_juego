@@ -30,6 +30,9 @@ export default function MainScreen() {
             <PixelButton
               label="PLAY"
               size="large"
+              imageSource={require('@/assets/images/buttons/playButton.png')}
+              pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
+              variant="image"
               onPress={() => {
                 // TODO: Navegar a pantalla de juego
                 console.log('Play pressed');
