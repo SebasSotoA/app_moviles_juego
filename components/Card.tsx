@@ -67,7 +67,7 @@ export function Card({ id, imageSource, isFlipped, isMatched, onPress, disabled 
         {/* Back of card */}
         <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
           <Image
-            source={require('@/assets/images/Medium/Back Blue 1.png')}
+            source={require('@/assets/images/cardAssets/Back Blue 1.png')}
             style={styles.cardImage}
             contentFit="contain"
           />
