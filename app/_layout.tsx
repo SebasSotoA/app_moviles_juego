@@ -1,24 +1,36 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+// Prevenir que la pantalla de splash se oculte automáticamente
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts({
+    PressStart2P_400Regular,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      // Ocultar la pantalla de splash cuando las fuentes estén cargadas
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style="light" />
+    </>
   );
 }
