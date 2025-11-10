@@ -7,19 +7,33 @@ import { GameFonts } from '@/constants/gameFonts';
  * Componente del título del juego
  * "Mobile dev's MEMORY QUEST"
  * Fuente pixelada PressStart2P con estilos específicos
- * Gradiente vertical para "MEMORY QUEST"
+ * Gradiente vertical para "MEMORY QUEST" con efecto 3D
  */
 export function Title() {
   // Dimensiones para los SVG
   const subtitleWidth = 180;
   const subtitleHeight = 36;
-  const titleWidth = 220;
-  const titleHeight = 32;
+  const titleWidth = 240;
+  const titleHeight = 40;
 
   return (
     <View style={styles.container}>
       <View style={styles.subtitleContainer}>
         <Svg width={subtitleWidth} height={subtitleHeight}>
+          {/* Sombra para efecto 3D */}
+          <SvgText
+            x="50%"
+            y={subtitleHeight / 2 + 8}
+            fontSize="20"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="#9D6631"
+            textAnchor="middle"
+            opacity="0.3"
+          >
+            <TSpan x="50%" dy="1">Mobile dev&apos;s</TSpan>
+          </SvgText>
+          {/* Texto principal */}
           <SvgText
             x="50%"
             y={subtitleHeight / 2 + 7}
@@ -48,9 +62,23 @@ export function Title() {
               <Stop offset="99%" stopColor="#FFF0DA" stopOpacity="1" />
             </LinearGradient>
           </Defs>
+          {/* Sombra oscura para efecto 3D (abajo y derecha) */}
+          <SvgText
+            x="51%"
+            y={titleHeight / 2 + 10}
+            fontSize="24"
+            fontFamily={GameFonts.pixelFont}
+            fontWeight="normal"
+            fill="#522B04"
+            textAnchor="middle"
+            opacity="0.6"
+          >
+            <TSpan x="51%" dy="1">MEMORY QUEST</TSpan>
+          </SvgText>
+          {/* Texto principal con gradiente */}
           <SvgText
             x="50%"
-            y={titleHeight / 2 + 8}
+            y={titleHeight / 2 + 9}
             fontSize="24"
             fontFamily={GameFonts.pixelFont}
             fontWeight="normal"
@@ -83,7 +111,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 32,
+    height: 40,
     marginBottom: 4,
   },
   underline: {
