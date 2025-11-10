@@ -57,8 +57,7 @@ export default function MainScreen() {
                 pressedImageSource={require('@/assets/images/buttons/creditsButtonPressed.png')}
                 variant="image"
                 onPress={() => {
-                  // TODO: Navegar a pantalla de créditos
-                  console.log('Credits pressed');
+                  router.push({ pathname: '/credits' as any });
                 }}
               />
             </View>
