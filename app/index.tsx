@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { Title } from '@/components/Title';
@@ -48,8 +49,7 @@ export default function MainScreen() {
                 pressedImageSource={require('@/assets/images/buttons/creditsButtonPressed.png')}
                 variant="image"
                 onPress={() => {
-                  // TODO: Navegar a pantalla de créditos
-                  console.log('Credits pressed');
+                  router.push({ pathname: '/credits' as any });
                 }}
               />
             </View>
