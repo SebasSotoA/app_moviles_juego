@@ -13,14 +13,14 @@ export function CardGrid() {
       <View style={styles.row}>
         <View style={styles.cardContainer}>
           <Image
-            source={require('@/assets/images/cardAssets/Back Blue 1.png')}
+            source={require('@/assets/images/cardAssets/BackBlue1.png')}
             style={styles.card}
             contentFit="contain"
           />
         </View>
         <View style={styles.cardContainer}>
           <Image
-            source={require('@/assets/images/cardAssets/Back Blue 1.png')}
+            source={require('@/assets/images/cardAssets/BackBlue1.png')}
             style={styles.card}
             contentFit="contain"
           />
@@ -29,14 +29,14 @@ export function CardGrid() {
       <View style={styles.row}>
         <View style={styles.cardContainer}>
           <Image
-            source={require('@/assets/images/cardAssets/Back Blue 1.png')}
+            source={require('@/assets/images/cardAssets/BackBlue1.png')}
             style={styles.card}
             contentFit="contain"
           />
         </View>
         <View style={styles.cardContainer}>
           <Image
-            source={require('@/assets/images/cardAssets/Back Blue 1.png')}
+            source={require('@/assets/images/cardAssets/BackBlue1.png')}
             style={styles.card}
             contentFit="contain"
           />
