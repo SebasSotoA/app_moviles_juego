@@ -8,6 +8,8 @@ import { GradientOverlay } from '@/components/GradientOverlay';
 import { GameStatsRow } from '@/components/GameStatsRow';
 import { GameHeader } from '@/components/GameHeader';
 import { SuccessMessage } from '@/components/SuccessMessage';
+import { Countdown } from '@/components/Countdown';
+import { DiscoveredDeck } from '@/components/DiscoveredDeck';
 import { Card } from '@/components/Card';
 import { useGame } from '@/hooks/useGame';
 import { useScore } from '@/hooks/useScore';
@@ -47,8 +49,10 @@ export default function GameScreen() {
     timeUsed,
     isGameComplete,
     isGameStarted,
+    countdownActive,
     flippedCardsCount,
     handleCardPress,
+    completeCountdown,
   } = useGame(validLevel, handlePairFound);
 
   const { calculateAndSaveScore } = useScore();
@@ -68,14 +72,15 @@ export default function GameScreen() {
     }
   }, [cards.length, validLevel, isGameStarted, isGameComplete, attempts, timeUsed]);
 
-  // Calcular puntaje actual (actualizado en tiempo real)
-  const currentScore = isGameStarted
+  // Calcular puntaje actual (actualizado en tiempo real, solo después del countdown)
+  const currentScore = isGameStarted && !countdownActive
     ? calculateScore(timeUsed, attempts, validLevel)
     : 0;
 
   // Cuando el juego se complete, navegar a resultados
+  // Solo si el juego ha comenzado (después del countdown)
   useEffect(() => {
-    if (isGameComplete && timeUsed > 0 && attempts > 0 && !hasNavigatedRef.current) {
+    if (isGameComplete && isGameStarted && !countdownActive && timeUsed > 0 && attempts > 0 && !hasNavigatedRef.current) {
       hasNavigatedRef.current = true;
       
       const handleGameComplete = async () => {
@@ -105,10 +110,11 @@ export default function GameScreen() {
       return () => clearTimeout(timeout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGameComplete, timeUsed, attempts, validLevel]);
+  }, [isGameComplete, isGameStarted, countdownActive, timeUsed, attempts, validLevel]);
 
   // Calcular dimensiones del grid (responsive para móvil)
   const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
   const padding = Platform.select({
     web: 16,
     default: 12,
@@ -117,7 +123,10 @@ export default function GameScreen() {
     web: 8,
     default: 6,
   });
-  const availableWidth = screenWidth - padding * 2 - 32; // Espacio adicional para seguridad
+  
+  // Reducir tamaño de cartas en 25% (factor de escala 0.75)
+  const scaleFactor = 0.75;
+  const availableWidth = (screenWidth - padding * 2 - 32) * scaleFactor; // Espacio adicional para seguridad
   const cardsPerRow = levelConfig.columns;
   const totalGapWidth = gap * (cardsPerRow - 1);
   const calculatedCardWidth = Math.max(50, Math.floor((availableWidth - totalGapWidth) / cardsPerRow)); // Mínimo 50px
@@ -135,16 +144,8 @@ export default function GameScreen() {
   const cardAspectRatio = 75 / 105;
   const calculatedCardHeight = Math.max(70, Math.floor(calculatedCardWidth / cardAspectRatio)); // Mínimo 70px
   
-  // Debug: Log de dimensiones
-  console.log('[GameScreen] Dimensiones calculadas:', {
-    screenWidth,
-    availableWidth,
-    calculatedCardWidth,
-    calculatedCardHeight,
-    cardsPerRow,
-    totalGapWidth,
-    gap,
-  });
+  // Altura reservada para el mazo descubierto en la parte inferior (aproximadamente 100px)
+  const deckHeight = 100;
 
   // No validar aquí porque las cartas se generan asíncronamente
   // El componente debe renderizarse siempre y mostrar las cartas cuando estén disponibles
@@ -158,64 +159,72 @@ export default function GameScreen() {
         <SuccessMessage
           visible={showSuccessMessage}
           onHide={() => setShowSuccessMessage(false)}
-          duration={2000}
+          duration={1000}
         />
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={true}
-          bounces={false}
-          keyboardShouldPersistTaps="handled"
-          style={styles.scrollView}
-        >
-          <View style={styles.content}>
-            <GameStatsRow time={timeUsed} score={currentScore} level={validLevel} />
+        {countdownActive && (
+          <Countdown onComplete={completeCountdown} duration={1} />
+        )}
+        <View style={styles.mainContent}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={true}
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            style={styles.scrollView}
+          >
+            <View style={styles.content}>
+              <GameStatsRow time={timeUsed} score={currentScore} level={validLevel} />
 
-            {cards.length > 0 && calculatedCardWidth > 0 && calculatedCardHeight > 0 ? (
-              <View style={styles.cardsContainer}>
-                <View style={styles.grid}>
-                  {cards.map((card, index) => {
-                    const row = Math.floor(index / cardsPerRow);
-                    const col = index % cardsPerRow;
-                    const isLastInRow = col === cardsPerRow - 1;
-                    return (
-                      <View
-                        key={card.id}
-                        style={[
-                          styles.cardWrapper,
-                          {
-                            width: calculatedCardWidth,
-                            height: calculatedCardHeight,
-                            marginRight: isLastInRow ? 0 : gap,
-                            marginBottom: gap,
-                          },
-                        ]}
-                      >
-                        <Card
-                          id={card.id}
-                          imageSource={card.imageSource}
-                          isFlipped={card.isFlipped}
-                          isMatched={card.isMatched}
-                          onPress={() => handleCardPress(card.id)}
-                          disabled={isGameComplete || (flippedCardsCount >= 2 && !card.isFlipped)}
-                          size={cardSize}
-                        />
-                      </View>
-                    );
-                  })}
+              {cards.length > 0 && calculatedCardWidth > 0 && calculatedCardHeight > 0 ? (
+                <View style={styles.cardsContainer}>
+                  <View style={styles.grid}>
+                    {cards.map((card, index) => {
+                      const row = Math.floor(index / cardsPerRow);
+                      const col = index % cardsPerRow;
+                      const isLastInRow = col === cardsPerRow - 1;
+                      return (
+                        <View
+                          key={card.id}
+                          style={[
+                            styles.cardWrapper,
+                            {
+                              width: calculatedCardWidth,
+                              height: calculatedCardHeight,
+                              marginRight: isLastInRow ? 0 : gap,
+                              marginBottom: gap,
+                            },
+                          ]}
+                        >
+                          <Card
+                            id={card.id}
+                            imageSource={card.imageSource}
+                            isFlipped={card.isFlipped}
+                            isMatched={card.isMatched}
+                            onPress={() => handleCardPress(card.id)}
+                            disabled={countdownActive || isGameComplete || (flippedCardsCount >= 2 && !card.isFlipped)}
+                            size={cardSize}
+                          />
+                        </View>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
-            ) : (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>
-                  {cards.length === 0 
-                    ? 'Cargando cartas...' 
-                    : `Calculando dimensiones... (W: ${calculatedCardWidth}, H: ${calculatedCardHeight})`}
-                </Text>
-              </View>
-            )}
+              ) : (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>
+                    {cards.length === 0 
+                      ? 'Cargando cartas...' 
+                      : `Calculando dimensiones... (W: ${calculatedCardWidth}, H: ${calculatedCardHeight})`}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+          <View style={styles.deckContainer}>
+            <DiscoveredDeck cards={cards} />
           </View>
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -229,6 +238,11 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 1,
     position: 'relative',
+    flexDirection: 'column',
+  },
+  mainContent: {
+    flex: 1,
+    flexDirection: 'column',
   },
   scrollView: {
     flex: 1,
@@ -241,9 +255,17 @@ const styles = StyleSheet.create({
       default: 12,
     }),
     paddingBottom: Platform.select({
-      web: 16,
-      default: 24,
+      web: 100,
+      default: 110,
     }),
+  },
+  deckContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: 'transparent',
   },
   content: {
     width: '100%',
@@ -252,22 +274,23 @@ const styles = StyleSheet.create({
       web: 16,
       default: 12,
     }),
-    minHeight: 400,
+    flex: 1,
+    justifyContent: 'flex-start',
   },
   cardsContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
+    flex: 1,
     marginTop: Platform.select({
       web: 16,
       default: 12,
     }),
-    minHeight: 200,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'flex-start',
     width: '100%',
     maxWidth: '100%',

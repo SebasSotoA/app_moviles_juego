@@ -19,6 +19,7 @@ export interface GameState {
   timeUsed: number; // en segundos
   isGameComplete: boolean;
   isGameStarted: boolean; // para iniciar el timer
+  countdownActive: boolean; // para el contador 3-2-1
 }
 
 export interface GameResult {

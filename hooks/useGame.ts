@@ -14,6 +14,7 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
     timeUsed: 0,
     isGameComplete: false,
     isGameStarted: false,
+    countdownActive: true,
   });
 
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,6 +38,7 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
         timeUsed: 0,
         isGameComplete: false,
         isGameStarted: false,
+        countdownActive: true, // Iniciar con countdown activo
       });
     } catch (error) {
       console.error('[useGame] Error al inicializar el juego:', error);
@@ -80,19 +82,23 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
     };
   }, [gameState.isGameStarted, gameState.isGameComplete]);
 
-  // Verificar si el juego está completo
-  useEffect(() => {
-    const allMatched = gameState.cards.every((card) => card.isMatched);
-    if (allMatched && gameState.cards.length > 0 && gameState.isGameStarted) {
-      setGameState((prev) => ({
-        ...prev,
-        isGameComplete: true,
-      }));
-    }
-  }, [gameState.cards, gameState.isGameStarted]);
+
+  // Función para completar el countdown
+  const completeCountdown = useCallback(() => {
+    setGameState((prev) => ({
+      ...prev,
+      countdownActive: false,
+      isGameStarted: true, // Iniciar el juego después del countdown
+    }));
+  }, []);
 
   const handleCardPress = useCallback((cardId: string) => {
     setGameState((prev) => {
+      // Bloquear interacción durante el countdown
+      if (prev.countdownActive) {
+        return prev;
+      }
+
       // No permitir click si ya hay 2 cartas volteadas
       if (prev.flippedCards.length >= 2) {
         return prev;
@@ -103,8 +109,8 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
         return prev;
       }
 
-      // Iniciar juego al primer click
-      const shouldStartGame = !prev.isGameStarted;
+      // Ya no necesitamos iniciar el juego al primer click, se inicia después del countdown
+      const shouldStartGame = false;
 
       // Voltear la carta
       const newFlippedCards = [...prev.flippedCards, cardId];
@@ -134,7 +140,6 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
               ),
               flippedCards: [],
               attempts: prev.attempts + 1,
-              isGameStarted: shouldStartGame || prev.isGameStarted,
             };
           } else {
             // No es una pareja - voltearlas después de un delay
@@ -159,7 +164,6 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
               cards: updatedCards,
               flippedCards: newFlippedCards,
               attempts: prev.attempts + 1,
-              isGameStarted: shouldStartGame || prev.isGameStarted,
             };
           }
         }
@@ -169,10 +173,20 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
         ...prev,
         cards: updatedCards,
         flippedCards: newFlippedCards,
-        isGameStarted: shouldStartGame || prev.isGameStarted,
       };
     });
   }, []);
+
+  // El juego solo puede completarse si ya comenzó (después del countdown)
+  useEffect(() => {
+    const allMatched = gameState.cards.every((card) => card.isMatched);
+    if (allMatched && gameState.cards.length > 0 && gameState.isGameStarted && !gameState.countdownActive) {
+      setGameState((prev) => ({
+        ...prev,
+        isGameComplete: true,
+      }));
+    }
+  }, [gameState.cards, gameState.isGameStarted, gameState.countdownActive]);
 
   const resetGame = useCallback(() => {
     initializeGame();
@@ -184,8 +198,10 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
     timeUsed: gameState.timeUsed,
     isGameComplete: gameState.isGameComplete,
     isGameStarted: gameState.isGameStarted,
+    countdownActive: gameState.countdownActive,
     flippedCardsCount: gameState.flippedCards.length,
     handleCardPress,
+    completeCountdown,
     resetGame,
   };
 }
