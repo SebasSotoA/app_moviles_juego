@@ -5,6 +5,7 @@ import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import { BackgroundMusicProvider } from '@/providers/BackgroundMusicProvider';
 
 // Prevenir que la pantalla de splash se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
@@ -38,7 +39,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <BackgroundMusicProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="select-level" options={{ headerShown: false }} />
@@ -47,6 +48,6 @@ export default function RootLayout() {
         <Stack.Screen name="credits" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="light" />
-    </>
+    </BackgroundMusicProvider>
   );
 }

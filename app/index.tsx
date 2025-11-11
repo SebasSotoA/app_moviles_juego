@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import { CardGrid } from '@/components/CardGrid';
 import { PixelButton } from '@/components/PixelButton';
 import { Footer } from '@/components/Footer';
 import { GameColors } from '@/constants/gameColors';
+import { useBackgroundMusic } from '@/providers/BackgroundMusicProvider';
 
 /**
  * Pantalla principal del juego Memory Quest
@@ -17,6 +18,11 @@ import { GameColors } from '@/constants/gameColors';
  */
 export default function MainScreen() {
   const router = useRouter();
+  const { ensurePlaying } = useBackgroundMusic();
+
+  useEffect(() => {
+    void ensurePlaying();
+  }, [ensurePlaying]);
 
   const handlePlayPress = () => {
     router.push('/select-level');

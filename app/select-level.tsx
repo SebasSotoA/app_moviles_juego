@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,9 +10,15 @@ import { GameFonts } from '@/constants/gameFonts';
 import { GameLevel } from '@/types/game';
 import { LEVEL_LABELS, LEVEL_DESCRIPTIONS } from '@/constants/gameLevels';
 import { Platform } from 'react-native';
+import { useBackgroundMusic } from '@/providers/BackgroundMusicProvider';
 
 export default function SelectLevelScreen() {
   const router = useRouter();
+  const { ensurePlaying } = useBackgroundMusic();
+
+  useEffect(() => {
+    void ensurePlaying();
+  }, [ensurePlaying]);
 
   const handleLevelSelect = (level: GameLevel) => {
     router.push({
