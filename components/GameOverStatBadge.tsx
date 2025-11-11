@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
 import { styles } from '@/styles/components/GameOverStatBadge.styles';
@@ -50,8 +50,4 @@ export function GameOverStatBadge({ icon, label, value }: GameOverStatBadgeProps
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-
-});
 

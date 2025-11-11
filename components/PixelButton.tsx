@@ -3,7 +3,7 @@ import { Text, Pressable, View} from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
-import styles from '@/styles/components/PixelButton.styles';
+import { styles } from '@/styles/components/PixelButton.styles';
 
 type PixelButtonProps = {
   label?: string;
