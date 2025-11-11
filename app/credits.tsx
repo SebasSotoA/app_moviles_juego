@@ -30,7 +30,6 @@ export default function CreditsScreen() {
               imageSource={require('@/assets/images/buttons/quitButton.png')}
               pressedImageSource={require('@/assets/images/buttons/quitButtonPressed.png')}
               variant="image"
-              soundType="back"
               onPress={() => {
                 router.back();
               }}

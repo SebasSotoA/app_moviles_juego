@@ -10,13 +10,9 @@ import { GameFonts } from '@/constants/gameFonts';
 import { GameLevel } from '@/types/game';
 import { LEVEL_LABELS, LEVEL_DESCRIPTIONS } from '@/constants/gameLevels';
 import { Platform } from 'react-native';
-import { useBackgroundMusic } from '@/hooks/useAudio';
 
 export default function SelectLevelScreen() {
   const router = useRouter();
-
-  // Música de fondo
-  useBackgroundMusic(require('@/assets/music/DwarvenMine.mp3'), true);
 
   const handleLevelSelect = (level: GameLevel) => {
     router.push({
@@ -83,7 +79,6 @@ export default function SelectLevelScreen() {
               label="BACK"
               size="small"
               variant="gradient"
-              soundType="back"
               onPress={handleBack}
             />
           </View>

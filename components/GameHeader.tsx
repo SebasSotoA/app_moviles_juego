@@ -37,7 +37,6 @@ export function GameHeader({ onExit, level }: GameHeaderProps) {
               imageSource={require('@/assets/images/buttons/quitTextButton.png')}
               pressedImageSource={require('@/assets/images/buttons/quitTextButtonPressed.png')}
               variant="image"
-              soundType="back"
               onPress={handleExitPress}
             />
           </View>

@@ -93,7 +93,6 @@ export default function ResultsScreen() {
                   imageSource={require('@/assets/images/buttons/playButton.png')}
                   pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
                   variant="image"
-                  soundType="normal"
                   onPress={handlePlayAgain}
                 />
               </View>
@@ -104,7 +103,6 @@ export default function ResultsScreen() {
                   imageSource={require('@/assets/images/buttons/quitButton.png')}
                   pressedImageSource={require('@/assets/images/buttons/quitButtonPressed.png')}
                   variant="image"
-                  soundType="back"
                   onPress={handleQuit}
                 />
               </View>

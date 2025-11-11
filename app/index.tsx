@@ -10,7 +10,6 @@ import { CardGrid } from '@/components/CardGrid';
 import { PixelButton } from '@/components/PixelButton';
 import { Footer } from '@/components/Footer';
 import { GameColors } from '@/constants/gameColors';
-import { useBackgroundMusic } from '@/hooks/useAudio';
 
 /**
  * Pantalla principal del juego Memory Quest
@@ -18,9 +17,6 @@ import { useBackgroundMusic } from '@/hooks/useAudio';
  */
 export default function MainScreen() {
   const router = useRouter();
-
-  // Música de fondo
-  useBackgroundMusic(require('@/assets/music/DwarvenMine.mp3'), true);
 
   const handlePlayPress = () => {
     router.push('/select-level');
@@ -44,7 +40,6 @@ export default function MainScreen() {
             imageSource={require('@/assets/images/buttons/playButton.png')}
             pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
             variant="image"
-            soundType="normal"
             onPress={handlePlayPress}
           />
         </View>
@@ -56,7 +51,6 @@ export default function MainScreen() {
               imageSource={require('@/assets/images/buttons/creditsButton.png')}
               pressedImageSource={require('@/assets/images/buttons/creditsButtonPressed.png')}
               variant="image"
-              soundType="normal"
               onPress={() => {
                 router.push({ pathname: '/credits' as any });
               }}
@@ -69,7 +63,6 @@ export default function MainScreen() {
               imageSource={require('@/assets/images/buttons/moreButton.png')}
               pressedImageSource={require('@/assets/images/buttons/moreButtonPressed.png')}
               variant="image"
-              soundType="normal"
               onPress={() => {
                 // TODO: Navegar a pantalla de más opciones
                 console.log('More pressed');

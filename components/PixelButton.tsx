@@ -4,7 +4,6 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
-import { useSoundEffect } from '@/hooks/useAudio';
 
 type PixelButtonProps = {
   label?: string;
@@ -13,7 +12,6 @@ type PixelButtonProps = {
   imageSource?: any;
   pressedImageSource?: any;
   variant?: 'gradient' | 'image';
-  soundType?: 'normal' | 'back';
 };
 
 /**
@@ -28,18 +26,10 @@ export function PixelButton({
   imageSource,
   pressedImageSource,
   variant = 'gradient',
-  soundType = 'normal',
 }: PixelButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
   const buttonStyle = size === 'large' ? styles.largeButton : styles.smallButton;
   const textStyle = size === 'large' ? styles.largeText : styles.smallText;
-
-  // Efectos de sonido
-  const playButtonSound = useSoundEffect(
-    soundType === 'back'
-      ? require('@/assets/sfx/backButtonClick.mp3')
-      : require('@/assets/sfx/buttonClick.wav')
-  );
 
   // Manejar eventos de presión de forma más robusta
   const handlePressIn = () => {
@@ -54,7 +44,6 @@ export function PixelButton({
   };
 
   const handlePress = () => {
-    playButtonSound();
     if (onPress) {
       onPress();
     }
