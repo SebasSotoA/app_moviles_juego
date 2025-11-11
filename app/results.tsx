@@ -5,7 +5,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { PixelButton } from '@/components/PixelButton';
-import { StatsBadge } from '@/components/StatsBadge';
+import { ScoreBadge } from '@/components/ScoreBadge';
+import { GameOverStatBadge } from '@/components/GameOverStatBadge';
 import { useScore } from '@/hooks/useScore';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
@@ -20,7 +21,6 @@ export default function ResultsScreen() {
   const time = parseInt(params.time as string, 10) || 0;
   const attempts = parseInt(params.attempts as string, 10) || 0;
   const level = parseInt(params.level as string, 10) || 1;
-  const isNewRecord = params.isNewRecord === 'true';
 
   // Formatear tiempo como MM:SS
   const formatTime = (seconds: number): string => {
@@ -29,11 +29,7 @@ export default function ResultsScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayAgain = () => {
-    router.push('/select-level');
-  };
-
-  const handleMenu = () => {
+  const handleQuit = () => {
     router.push('/');
   };
 
@@ -50,73 +46,40 @@ export default function ResultsScreen() {
       >
         <View style={styles.content}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>RESULTS</Text>
-            {isNewRecord && (
-              <View style={styles.newRecordContainer}>
-                <Text style={styles.newRecordText}>🎉 ¡NUEVO RÉCORD!</Text>
-              </View>
-            )}
+            <Text style={styles.title}>GAME OVER</Text>
+            <Text style={styles.subtitle}>Good luck on the next one</Text>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>PARTIDA ACTUAL</Text>
-            <View style={styles.statsContainer}>
-              <View style={styles.statItem}>
-                <StatsBadge icon="⭐" value={score.toString()} />
-                <Text style={styles.statLabel}>Puntaje</Text>
-              </View>
-              <View style={styles.statItem}>
-                <StatsBadge icon="⏱️" value={formatTime(time)} />
-                <Text style={styles.statLabel}>Tiempo</Text>
-              </View>
-              <View style={styles.statItem}>
-                <StatsBadge icon="🎯" value={attempts.toString()} />
-                <Text style={styles.statLabel}>Intentos</Text>
-              </View>
-              <View style={styles.statItem}>
-                <StatsBadge icon="🏆" value={`LV.${level}`} />
-                <Text style={styles.statLabel}>Nivel</Text>
-              </View>
-            </View>
+          <View style={styles.scoreSection}>
+            <ScoreBadge score={score} />
+          </View>
+
+          <View style={styles.statsSection}>
+            <GameOverStatBadge icon="⏱️" label="Time" value={formatTime(time)} />
+            <GameOverStatBadge icon="❤️" label="Remaining Lives" value={`x${attempts}`} />
+            <GameOverStatBadge icon="🏆" label="Difficulty" value={`Lvl. ${level}`} />
           </View>
 
           {bestRecord && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>MEJOR RÉCORD</Text>
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <StatsBadge icon="⭐" value={bestRecord.bestScore.toString()} />
-                  <Text style={styles.statLabel}>Mejor Puntaje</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <StatsBadge icon="⏱️" value={formatTime(bestRecord.bestTime)} />
-                  <Text style={styles.statLabel}>Mejor Tiempo</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <StatsBadge icon="🎯" value={bestRecord.bestAttempts.toString()} />
-                  <Text style={styles.statLabel}>Menos Intentos</Text>
-                </View>
+            <View style={styles.recordSection}>
+              <Text style={styles.recordTitle}>BEST RECORD</Text>
+              <View style={styles.recordBadges}>
+                <GameOverStatBadge icon="⭐" label="Best Score" value={bestRecord.bestScore.toString()} />
+                <GameOverStatBadge icon="⏱️" label="Best Time" value={formatTime(bestRecord.bestTime)} />
+                <GameOverStatBadge icon="🎯" label="Best Attempts" value={bestRecord.bestAttempts.toString()} />
               </View>
             </View>
           )}
 
           <View style={styles.buttonsContainer}>
-            <View style={styles.buttonWrapper}>
-              <PixelButton
-                label="PLAY AGAIN"
-                size="large"
-                variant="gradient"
-                onPress={handlePlayAgain}
-              />
-            </View>
-            <View style={styles.buttonWrapper}>
-              <PixelButton
-                label="MENU"
-                size="small"
-                variant="gradient"
-                onPress={handleMenu}
-              />
-            </View>
+            <PixelButton
+              label="QUIT"
+              size="large"
+              imageSource={require('@/assets/images/buttons/quitTextButton.png')}
+              pressedImageSource={require('@/assets/images/buttons/quitTextButtonPressed.png')}
+              variant="image"
+              onPress={handleQuit}
+            />
           </View>
         </View>
       </ScrollView>
@@ -141,12 +104,12 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     marginTop: 32,
-    marginBottom: 32,
+    marginBottom: 24,
     alignItems: 'center',
   },
   title: {
     fontFamily: GameFonts.pixelFont,
-    fontSize: 18,
+    fontSize: 20,
     color: GameColors.textGold,
     ...Platform.select({
       web: {
@@ -159,38 +122,39 @@ const styles = StyleSheet.create({
       },
     }),
     letterSpacing: 2,
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  newRecordContainer: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: GameColors.textGold,
-    borderWidth: 2,
-    borderColor: GameColors.borderDark,
-  },
-  newRecordText: {
+  subtitle: {
     fontFamily: GameFonts.pixelFont,
-    fontSize: 12,
-    color: '#000',
+    fontSize: 10,
+    color: '#FFFFFF',
     ...Platform.select({
       web: {
-        textShadow: '2px 2px 0px ' + GameColors.textOutline,
+        textShadow: '1px 1px 0px ' + GameColors.textOutline,
       } as any,
       default: {
         textShadowColor: GameColors.textOutline,
-        textShadowOffset: { width: 2, height: 2 },
+        textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 0,
       },
     }),
   },
-  section: {
+  scoreSection: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
-  sectionTitle: {
+  statsSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  recordSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  recordTitle: {
     fontFamily: GameFonts.pixelFont,
     fontSize: 12,
     color: GameColors.textBrown,
@@ -206,41 +170,15 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+  recordBadges: {
+    width: '100%',
     alignItems: 'center',
-    gap: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-    marginHorizontal: 8,
-    marginVertical: 8,
-  },
-  statLabel: {
-    fontFamily: GameFonts.pixelFont,
-    fontSize: 8,
-    color: GameColors.textCream,
-    marginTop: 8,
-    ...Platform.select({
-      web: {
-        textShadow: '1px 1px 0px ' + GameColors.textOutline,
-      } as any,
-      default: {
-        textShadowColor: GameColors.textOutline,
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 0,
-      },
-    }),
   },
   buttonsContainer: {
     width: '100%',
     alignItems: 'center',
     marginTop: 24,
-  },
-  buttonWrapper: {
-    marginVertical: 8,
+    marginBottom: 32,
   },
 });
 

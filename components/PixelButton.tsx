@@ -37,15 +37,16 @@ export function PixelButton({
   };
 
   const handlePressOut = () => {
-    setIsPressed(false);
+    // Mantener el estado pressed visible un momento antes de resetear
+    setTimeout(() => {
+      setIsPressed(false);
+    }, 150);
   };
 
   const handlePress = () => {
     if (onPress) {
       onPress();
     }
-    // Asegurar que el estado se resetee después del press
-    setIsPressed(false);
   };
 
   if (variant === 'image' && imageSource) {
