@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
@@ -46,14 +46,7 @@ export default function ResultsScreen() {
     <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={true}
-        bounces={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.content}>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{won ? 'VICTORY!' : 'GAME OVER'}</Text>
@@ -88,28 +81,23 @@ export default function ResultsScreen() {
             <View style={styles.buttonRow}>
               <View style={styles.buttonWrapper}>
                 <PixelButton
-                  label="PLAY"
-                  size="large"
-                  imageSource={require('@/assets/images/buttons/playButton.png')}
-                  pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
-                  variant="image"
+                  label="PLAY AGAIN"
+                  size="small"
+                  variant="gradient"
                   onPress={handlePlayAgain}
                 />
               </View>
               <View style={styles.buttonWrapper}>
                 <PixelButton
-                  label=""
+                  label="QUIT"
                   size="small"
-                  imageSource={require('@/assets/images/buttons/quitButton.png')}
-                  pressedImageSource={require('@/assets/images/buttons/quitButtonPressed.png')}
-                  variant="image"
+                  variant="gradient"
                   onPress={handleQuit}
                 />
               </View>
             </View>
           </View>
         </View>
-      </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -123,20 +111,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-  },
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100%',
-    paddingVertical: 32,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   titleContainer: {
-    marginTop: 32,
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 12,
     alignItems: 'center',
   },
   title: {
@@ -174,17 +158,17 @@ const styles = StyleSheet.create({
   scoreSection: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   statsSection: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   recordSection: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   recordTitle: {
     fontFamily: GameFonts.pixelFont,
@@ -209,14 +193,15 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 32,
+    marginTop: 12,
+    marginBottom: 16,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
+    flexWrap: 'wrap',
   },
   buttonWrapper: {
     alignItems: 'center',

@@ -16,6 +16,7 @@ import { useScore } from '@/hooks/useScore';
 import { GAME_LEVELS, GameLevel } from '@/constants/gameLevels';
 import { calculateScore } from '@/utils/score';
 import { GameColors } from '@/constants/gameColors';
+import { useBackgroundMusic } from '@/providers/BackgroundMusicProvider';
 
 export default function GameScreen() {
   const router = useRouter();
@@ -25,6 +26,9 @@ export default function GameScreen() {
   // Validar nivel
   const validLevel = (level >= 1 && level <= 3 ? level : 1) as GameLevel;
   const levelConfig = GAME_LEVELS[validLevel];
+
+  // Música según el nivel
+  const { ensurePlaying, pause } = useBackgroundMusic();
 
   // Estado para mensaje de éxito
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -86,6 +90,16 @@ export default function GameScreen() {
   const currentScore = isGameStarted && !countdownActive
     ? calculateScore(timeUsed, attempts, validLevel)
     : 0;
+
+  // Reproducir música según el nivel
+  useEffect(() => {
+    const musicTrack = validLevel === 3 ? 'level3' : (validLevel === 2 ? 'level2' : 'level1');
+    void ensurePlaying(musicTrack);
+    
+    return () => {
+      void pause();
+    };
+  }, [validLevel, ensurePlaying, pause]);
 
   // Limpiar timeouts cuando el componente se desmonte
   useEffect(() => {
