@@ -7,12 +7,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Audio } from 'expo-av';
+import { Platform } from 'react-native';
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 
 type MusicTrack = 'menu' | 'level1' | 'level2' | 'level3';
 
 type BackgroundMusicContextValue = {
-  ensurePlaying: (track?: MusicTrack) => Promise<void>;
+  ensurePlaying: (track?: MusicTrack, forcePlay?: boolean) => Promise<void>;
   pause: () => Promise<void>;
   setVolume: (volume: number) => Promise<void>;
   isPlaying: boolean;
@@ -45,6 +46,7 @@ export function BackgroundMusicProvider({ children }: { children: React.ReactNod
   const soundRef = useRef<Audio.Sound | null>(null);
   const currentTrackRef = useRef<MusicTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const userInteractedRef = useRef(false);
 
   const loadSound = useCallback(async (track: MusicTrack) => {
     // Si ya está cargada la misma canción, retornar el sonido actual
@@ -68,8 +70,8 @@ export function BackgroundMusicProvider({ children }: { children: React.ReactNod
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
         shouldDuckAndroid: false,
         playThroughEarpieceAndroid: false,
       });
@@ -98,14 +100,66 @@ export function BackgroundMusicProvider({ children }: { children: React.ReactNod
     return sound;
   }, []);
 
-  const ensurePlaying = useCallback(async (track: MusicTrack = 'menu') => {
+  const ensurePlaying = useCallback(async (track: MusicTrack = 'menu', forcePlay: boolean = false) => {
     try {
       const sound = await loadSound(track);
       const status = await sound.getStatusAsync();
-      if (status.isLoaded && !status.isPlaying) {
-        await sound.playAsync();
+      if (status.isLoaded) {
+        if (!status.isPlaying) {
+          try {
+            await sound.playAsync();
+            // Si se reproduce exitosamente, marcar que el usuario ha interactuado (en web)
+            if (Platform.OS === 'web') {
+              userInteractedRef.current = true;
+            }
+          } catch (playError: any) {
+            // En web, si es un error de autoplay, no mostrar el error en consola
+            // Solo intentar de nuevo si el usuario ya ha interactuado o si forcePlay es true
+            if (Platform.OS === 'web' && playError?.name === 'NotAllowedError') {
+              if (forcePlay || userInteractedRef.current) {
+                // Si el usuario ya interactuó o se fuerza, intentar de nuevo
+                try {
+                  await sound.playAsync();
+                  userInteractedRef.current = true;
+                } catch (retryError) {
+                  // Silenciar el error en el segundo intento
+                }
+              }
+              // Si no se puede reproducir por autoplay, simplemente no hacer nada
+              return;
+            }
+            // Para otros errores o plataformas, mostrar advertencia
+            if (Platform.OS !== 'web' || forcePlay) {
+              console.warn('No se pudo reproducir la música de fondo', playError);
+            }
+          }
+        }
+        // Verificar nuevamente después de un breve delay para asegurar que se reproduzca
+        setTimeout(async () => {
+          const newStatus = await sound.getStatusAsync();
+          if (newStatus.isLoaded && !newStatus.isPlaying) {
+            try {
+              await sound.playAsync();
+              if (Platform.OS === 'web') {
+                userInteractedRef.current = true;
+              }
+            } catch (playError: any) {
+              // En web, ignorar errores de autoplay silenciosamente
+              if (Platform.OS === 'web' && playError?.name === 'NotAllowedError') {
+                return;
+              }
+              if (forcePlay || Platform.OS !== 'web') {
+                console.warn('Error al reproducir música en segundo intento:', playError);
+              }
+            }
+          }
+        }, 100);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // En web, ignorar errores de autoplay silenciosamente
+      if (Platform.OS === 'web' && error?.name === 'NotAllowedError') {
+        return;
+      }
       console.warn('No se pudo reproducir la música de fondo', error);
     }
   }, [loadSound]);

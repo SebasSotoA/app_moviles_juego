@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Audio } from 'expo-av';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { PixelButton } from '@/components/PixelButton';
@@ -16,6 +17,10 @@ export default function ResultsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { bestRecord } = useScore();
+  const buttonSoundRef = useRef<Audio.Sound | null>(null);
+  const backSoundRef = useRef<Audio.Sound | null>(null);
+  const winSoundRef = useRef<Audio.Sound | null>(null);
+  const gameOverSoundRef = useRef<Audio.Sound | null>(null);
 
   const score = parseInt(params.score as string, 10) || 0;
   const time = parseInt(params.time as string, 10) || 0;
@@ -24,6 +29,120 @@ export default function ResultsScreen() {
   const won = params.won === 'true';
   const lives = parseInt(params.lives as string, 10) || 0;
 
+  // Precargar sonidos y reproducir sonido de resultado al montar el componente
+  useEffect(() => {
+    const loadSoundsAndPlay = async () => {
+      try {
+        // Precargar sonido de botón
+        const { sound: buttonSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/buttonClick.wav'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        buttonSoundRef.current = buttonSound;
+
+        // Precargar sonido de retroceso
+        const { sound: backSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/backButtonClick.mp3'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        backSoundRef.current = backSound;
+
+        // Precargar sonido de victoria
+        const { sound: winSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/gameWinSound.mp3'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        winSoundRef.current = winSound;
+
+        // Precargar sonido de derrota
+        const { sound: gameOverSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/gameOverSound.mp3'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        gameOverSoundRef.current = gameOverSound;
+
+        // Una vez cargados los sonidos, reproducir el correspondiente
+        // Detener cualquier sonido que esté reproduciéndose
+        if (winSoundRef.current) {
+          try {
+            const winStatus = await winSoundRef.current.getStatusAsync();
+            if (winStatus.isLoaded && winStatus.isPlaying) {
+              await winSoundRef.current.stopAsync();
+            }
+          } catch (error) {
+            // Ignorar errores
+          }
+        }
+        if (gameOverSoundRef.current) {
+          try {
+            const gameOverStatus = await gameOverSoundRef.current.getStatusAsync();
+            if (gameOverStatus.isLoaded && gameOverStatus.isPlaying) {
+              await gameOverSoundRef.current.stopAsync();
+            }
+          } catch (error) {
+            // Ignorar errores
+          }
+        }
+
+        // Reproducir el sonido correspondiente
+        if (won && winSoundRef.current) {
+          try {
+            const sound = winSoundRef.current;
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded) {
+              await sound.setPositionAsync(0);
+              await sound.playAsync();
+            }
+          } catch (error) {
+            console.warn('Error al reproducir sonido de victoria:', error);
+          }
+        } else if (!won && gameOverSoundRef.current) {
+          try {
+            const sound = gameOverSoundRef.current;
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded) {
+              await sound.setPositionAsync(0);
+              await sound.playAsync();
+            }
+          } catch (error) {
+            console.warn('Error al reproducir sonido de derrota:', error);
+          }
+        }
+      } catch (error) {
+        console.warn('Error al precargar sonidos:', error);
+      }
+    };
+
+    void loadSoundsAndPlay();
+
+    return () => {
+      // Detener y limpiar todos los sonidos al desmontar
+      const cleanupSound = async (sound: Audio.Sound | null) => {
+        if (sound) {
+          try {
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded && status.isPlaying) {
+              await sound.stopAsync();
+            }
+            await sound.unloadAsync();
+          } catch (error) {
+            // Ignorar errores al limpiar
+          }
+        }
+      };
+
+      void cleanupSound(buttonSoundRef.current);
+      void cleanupSound(backSoundRef.current);
+      void cleanupSound(winSoundRef.current);
+      void cleanupSound(gameOverSoundRef.current);
+
+      buttonSoundRef.current = null;
+      backSoundRef.current = null;
+      winSoundRef.current = null;
+      gameOverSoundRef.current = null;
+    };
+  }, [won]);
+
   // Formatear tiempo como MM:SS
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -31,16 +150,78 @@ export default function ResultsScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayAgain = () => {
+  const playButtonSound = useCallback(async () => {
+    try {
+      const sound = buttonSoundRef.current;
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.didJustFinish || status.positionMillis > 0) {
+            await sound.setPositionAsync(0);
+          }
+          await sound.playAsync();
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido del botón', error);
+    }
+  }, []);
+
+  const playBackSound = useCallback(async () => {
+    try {
+      const sound = backSoundRef.current;
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.didJustFinish || status.positionMillis > 0) {
+            await sound.setPositionAsync(0);
+          }
+          await sound.playAsync();
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido del botón de retroceso', error);
+    }
+  }, []);
+
+  // Detener sonidos de resultado (victoria/derrota)
+  const stopResultSounds = useCallback(async () => {
+    try {
+      // Detener sonido de victoria
+      if (winSoundRef.current) {
+        const winStatus = await winSoundRef.current.getStatusAsync();
+        if (winStatus.isLoaded && winStatus.isPlaying) {
+          await winSoundRef.current.stopAsync();
+        }
+      }
+      // Detener sonido de derrota
+      if (gameOverSoundRef.current) {
+        const gameOverStatus = await gameOverSoundRef.current.getStatusAsync();
+        if (gameOverStatus.isLoaded && gameOverStatus.isPlaying) {
+          await gameOverSoundRef.current.stopAsync();
+        }
+      }
+    } catch (error) {
+      // Ignorar errores al detener sonidos
+    }
+  }, []);
+
+  const handlePlayAgain = useCallback(async () => {
+    // Detener sonidos de resultado antes de navegar
+    await stopResultSounds();
+    void playButtonSound();
     router.push({
       pathname: '/game',
       params: { level: level.toString() },
     });
-  };
+  }, [stopResultSounds, playButtonSound, router, level]);
 
-  const handleQuit = () => {
+  const handleQuit = useCallback(async () => {
+    // Detener sonidos de resultado antes de navegar
+    await stopResultSounds();
+    void playBackSound();
     router.push('/select-level');
-  };
+  }, [stopResultSounds, playBackSound, router]);
 
   return (
     <View style={styles.wrapper}>

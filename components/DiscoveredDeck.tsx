@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, View, Platform, Text } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { Card } from '@/types/game';
 import { styles } from '@/styles/components/DiscoveredDeck.styles';

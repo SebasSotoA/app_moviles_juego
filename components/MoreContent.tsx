@@ -1,14 +1,13 @@
-import React from 'react';
 import { Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
-import { styles } from '@/styles/components/ScoreBadge.styles';
+import { styles } from '@/styles/components/CreditsContent.styles';
 
-type ScoreBadgeProps = {
-  score: number;
-};
-
-export function ScoreBadge({ score }: ScoreBadgeProps) {
+/**
+ * Componente de contenido de información técnica
+ * Muestra información sobre las tecnologías usadas
+ */
+export function MoreContent() {
   return (
     <View style={styles.container}>
       {/* Sombra para efecto 3D */}
@@ -31,11 +30,29 @@ export function ScoreBadge({ score }: ScoreBadgeProps) {
           <View style={styles.borderRight} />
           
           <View style={styles.content}>
-            <Text style={styles.label}>SCORE</Text>
-            <Text style={styles.value}>{score.toString()}</Text>
+            <Text style={styles.title}>TECHNOLOGY</Text>
+            
+            <View style={styles.section}>
+              <Text style={styles.text}>Built with</Text>
+              <Text style={styles.highlightText}>Expo</Text>
+              <Text style={styles.text}>and</Text>
+              <Text style={styles.highlightText}>React Native</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.text}>Powered by modern</Text>
+              <Text style={styles.text}>cross-platform</Text>
+              <Text style={styles.text}>development tools</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.text}>Crafted with care</Text>
+              <Text style={styles.text}>for all platforms</Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
     </View>
   );
 }
+

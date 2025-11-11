@@ -7,7 +7,8 @@ import { Card, GameLevel, GameState } from '@/types/game';
 import { generateDeck } from '@/utils/cards';
 import { GAME_LEVELS } from '@/constants/gameLevels';
 
-export function useGame(level: GameLevel, onPairFound?: () => void) {
+export function useGame(level: GameLevel, onPairFound?: () => void, onWrongPair?: () => void) {
+  const levelConfig = GAME_LEVELS[level];
   const [gameState, setGameState] = useState<GameState>({
     cards: [],
     flippedCards: [],
@@ -16,16 +17,23 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
     isGameComplete: false,
     isGameStarted: false,
     countdownActive: true,
+    lives: levelConfig.initialLives,
+    isGameLost: false,
   });
 
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const flipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onPairFoundRef = useRef(onPairFound);
+  const onWrongPairRef = useRef(onWrongPair);
   
-  // Actualizar la ref cuando cambie el callback
+  // Actualizar las refs cuando cambien los callbacks
   useEffect(() => {
     onPairFoundRef.current = onPairFound;
   }, [onPairFound]);
+
+  useEffect(() => {
+    onWrongPairRef.current = onWrongPair;
+  }, [onWrongPair]);
 
   // Función para inicializar el juego
   const initializeGame = useCallback(() => {
@@ -147,6 +155,11 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
             };
           } else {
             // No es una pareja - restar una vida y voltearlas después de un delay
+            // Llamar al callback si existe
+            if (onWrongPairRef.current) {
+              onWrongPairRef.current();
+            }
+            
             const newLives = prev.lives - 1;
             const isGameLost = newLives <= 0;
             

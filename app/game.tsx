@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollView, StyleSheet, View, Dimensions, Platform, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
@@ -13,7 +14,8 @@ import { DiscoveredDeck } from '@/components/DiscoveredDeck';
 import { Card } from '@/components/Card';
 import { useGame } from '@/hooks/useGame';
 import { useScore } from '@/hooks/useScore';
-import { GAME_LEVELS, GameLevel } from '@/constants/gameLevels';
+import { GAME_LEVELS } from '@/constants/gameLevels';
+import { GameLevel } from '@/types/game';
 import { calculateScore } from '@/utils/score';
 import { GameColors } from '@/constants/gameColors';
 import { useBackgroundMusic } from '@/providers/BackgroundMusicProvider';
@@ -32,6 +34,44 @@ export default function GameScreen() {
 
   // Estado para mensaje de éxito
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const wrongPairSoundRef = useRef<Audio.Sound | null>(null);
+  const correctPairSoundRef = useRef<Audio.Sound | null>(null);
+
+  // Precargar sonidos
+  useEffect(() => {
+    const loadSounds = async () => {
+      try {
+        // Precargar sonido de par incorrecto
+        const { sound: wrongSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/wrongPair.mp3'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        wrongPairSoundRef.current = wrongSound;
+
+        // Precargar sonido de par correcto
+        const { sound: correctSound } = await Audio.Sound.createAsync(
+          require('@/assets/sfx/startSound.wav'),
+          { shouldPlay: false, volume: 0.7 }
+        );
+        correctPairSoundRef.current = correctSound;
+      } catch (error) {
+        console.warn('Error al precargar sonidos:', error);
+      }
+    };
+
+    void loadSounds();
+
+    return () => {
+      if (wrongPairSoundRef.current) {
+        wrongPairSoundRef.current.unloadAsync().catch(() => {});
+        wrongPairSoundRef.current = null;
+      }
+      if (correctPairSoundRef.current) {
+        correctPairSoundRef.current.unloadAsync().catch(() => {});
+        correctPairSoundRef.current = null;
+      }
+    };
+  }, []);
 
   // Callback para ocultar el mensaje de éxito
   const handleHideSuccessMessage = useCallback(() => {
@@ -39,11 +79,48 @@ export default function GameScreen() {
   }, []);
 
   // Callback cuando se encuentra un par
-  const handlePairFound = useCallback(() => {
+  const handlePairFound = useCallback(async () => {
     setShowSuccessMessage(true);
+    // Reproducir sonido de par correcto
+    try {
+      const sound = correctPairSoundRef.current;
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.didJustFinish || status.positionMillis > 0) {
+            await sound.setPositionAsync(0);
+          }
+          await sound.playAsync();
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido de par correcto', error);
+    }
     // Feedback háptico en móvil
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  }, []);
+
+  // Callback cuando se encuentra un par incorrecto
+  const handleWrongPair = useCallback(async () => {
+    try {
+      const sound = wrongPairSoundRef.current;
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.didJustFinish || status.positionMillis > 0) {
+            await sound.setPositionAsync(0);
+          }
+          await sound.playAsync();
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido de par incorrecto', error);
+    }
+    // Feedback háptico en móvil
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   }, []);
 
@@ -65,7 +142,7 @@ export default function GameScreen() {
     isGameLost,
     handleCardPress,
     completeCountdown,
-  } = useGame(validLevel, handlePairFound);
+  } = useGame(validLevel, handlePairFound, handleWrongPair);
 
   const { calculateAndSaveScore } = useScore();
   const hasNavigatedRef = useRef(false);

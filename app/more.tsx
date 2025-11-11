@@ -6,14 +6,14 @@ import { Audio } from 'expo-av';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { PixelButton } from '@/components/PixelButton';
-import { CreditsContent } from '@/components/CreditsContent';
+import { MoreContent } from '@/components/MoreContent';
 import { GameColors } from '@/constants/gameColors';
 
 /**
- * Pantalla de créditos del juego
- * Muestra información sobre los desarrolladores
+ * Pantalla de información técnica
+ * Muestra información sobre las tecnologías usadas
  */
-export default function CreditsScreen() {
+export default function MoreScreen() {
   const soundRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function CreditsScreen() {
               onPress={handleBackPress}
             />
           </View>
-          <CreditsContent />
+          <MoreContent />
         </View>
       </ScrollView>
       </SafeAreaView>
