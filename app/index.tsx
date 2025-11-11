@@ -18,11 +18,15 @@ import { useBackgroundMusic } from '@/providers/BackgroundMusicProvider';
  */
 export default function MainScreen() {
   const router = useRouter();
-  const { ensurePlaying } = useBackgroundMusic();
+  const { ensurePlaying, pause } = useBackgroundMusic();
 
   useEffect(() => {
-    void ensurePlaying();
-  }, [ensurePlaying]);
+    void ensurePlaying('menu');
+    
+    return () => {
+      void pause();
+    };
+  }, [ensurePlaying, pause]);
 
   const handlePlayPress = () => {
     router.push('/select-level');

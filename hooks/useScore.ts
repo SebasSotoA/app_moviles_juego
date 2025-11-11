@@ -12,19 +12,20 @@ export function useScore() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar récord al iniciar
-  useEffect(() => {
-    loadRecord();
-  }, []);
-
-  const loadRecord = async () => {
+  const loadRecord = useCallback(async () => {
     setIsLoading(true);
     const record = await loadBestRecord();
     setBestRecord(record);
     setIsLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRecord();
+  }, [loadRecord]);
 
   /**
    * Calcula el puntaje y actualiza el récord si es mejor
+   * Solo guarda récords cuando el jugador gana (won === true)
    */
   const calculateAndSaveScore = useCallback(
     async (
@@ -45,22 +46,25 @@ export function useScore() {
         lives,
       };
 
-      // Comparar con el mejor récord actual (cargar si no está cargado)
-      let currentBestRecord = bestRecord;
-      if (!currentBestRecord) {
-        currentBestRecord = await loadBestRecord();
-        if (currentBestRecord) {
-          setBestRecord(currentBestRecord);
+      // Solo guardar/actualizar récords si el jugador ganó
+      if (won) {
+        // Comparar con el mejor récord actual (cargar si no está cargado)
+        let currentBestRecord = bestRecord;
+        if (!currentBestRecord) {
+          currentBestRecord = await loadBestRecord();
+          if (currentBestRecord) {
+            setBestRecord(currentBestRecord);
+          }
         }
-      }
 
-      const isNewRecord = compareRecords(currentResult, currentBestRecord);
+        const isNewRecord = compareRecords(currentResult, currentBestRecord);
 
-      if (isNewRecord) {
-        const updatedRecord = updateBestRecord(currentResult, currentBestRecord);
-        await saveBestRecord(updatedRecord);
-        setBestRecord(updatedRecord);
-        currentResult.isNewRecord = true;
+        if (isNewRecord) {
+          const updatedRecord = updateBestRecord(currentResult, currentBestRecord);
+          await saveBestRecord(updatedRecord);
+          setBestRecord(updatedRecord);
+          currentResult.isNewRecord = true;
+        }
       }
 
       return currentResult;
