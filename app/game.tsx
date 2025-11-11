@@ -237,7 +237,7 @@ export default function GameScreen() {
   // Calcular dimensiones del grid (responsive para móvil)
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
-  const padding = Platform.select({
+  const horizontalPadding = Platform.select({
     web: 16,
     default: 12,
   });
@@ -248,10 +248,22 @@ export default function GameScreen() {
   
   // Reducir tamaño de cartas en 25% (factor de escala 0.75)
   const scaleFactor = 0.75;
-  const availableWidth = (screenWidth - padding * 2 - 32) * scaleFactor; // Espacio adicional para seguridad
   const cardsPerRow = levelConfig.columns;
+  
+  // Calcular el ancho disponible considerando el padding del contenedor
+  // El scrollContent tiene paddingHorizontal, así que lo consideramos
+  const containerPadding = horizontalPadding * 2;
+  const availableWidth = (screenWidth - containerPadding) * scaleFactor;
+  
+  // Calcular el ancho de cada carta para que quepan exactamente en el espacio disponible
   const totalGapWidth = gap * (cardsPerRow - 1);
-  const calculatedCardWidth = Math.max(50, Math.floor((availableWidth - totalGapWidth) / cardsPerRow)); // Mínimo 50px
+  const calculatedCardWidth = Math.max(50, Math.floor((availableWidth - totalGapWidth) / cardsPerRow));
+  
+  // Calcular el ancho total del grid (ancho de todas las cartas + gaps)
+  const gridTotalWidth = (calculatedCardWidth * cardsPerRow) + totalGapWidth;
+  
+  // Asegurar que el grid no exceda el ancho disponible (por seguridad)
+  const finalGridWidth = Math.min(gridTotalWidth, availableWidth);
   
   // Determinar tamaño de carta según nivel (para referencia, pero usamos calculatedCardWidth)
   const getCardSize = (): 'small' | 'medium' | 'large' => {
@@ -265,9 +277,6 @@ export default function GameScreen() {
   // Calcular altura de carta manteniendo proporción (75/105 ≈ 0.714)
   const cardAspectRatio = 75 / 105;
   const calculatedCardHeight = Math.max(70, Math.floor(calculatedCardWidth / cardAspectRatio)); // Mínimo 70px
-  
-  // Altura reservada para el mazo descubierto en la parte inferior (aproximadamente 100px)
-  const deckHeight = 100;
 
   // No validar aquí porque las cartas se generan asíncronamente
   // El componente debe renderizarse siempre y mostrar las cartas cuando estén disponibles
@@ -301,7 +310,7 @@ export default function GameScreen() {
 
               {cards.length > 0 && calculatedCardWidth > 0 && calculatedCardHeight > 0 ? (
                 <View style={styles.cardsContainer}>
-                  <View style={styles.grid}>
+                  <View style={[styles.grid, { width: finalGridWidth }]}>
                     {cards.map((card, index) => {
                       const row = Math.floor(index / cardsPerRow);
                       const col = index % cardsPerRow;
@@ -418,10 +427,9 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    width: '100%',
-    maxWidth: '100%',
+    alignContent: 'flex-start',
   },
   cardWrapper: {
     alignItems: 'center',
