@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useAudioPlayer } from 'expo-audio';
+import { audioManager } from './useAudioManager';
 
 /**
  * Hook para reproducir música de fondo en loop
@@ -20,20 +21,34 @@ export function useBackgroundMusic(source: any, shouldPlay: boolean = true) {
     // Si cambió el source, recargar
     if (previousSourceRef.current !== source) {
       previousSourceRef.current = source;
-      player.replace(source);
+      try {
+        player.replace(source);
+      } catch (error) {
+        // Ignorar errores al reemplazar
+      }
     }
 
     if (shouldPlay) {
-      player.loop = true;
-      player.play();
+      // Registrar esta música como la actual y detener otras
+      audioManager.setCurrentMusic(player, source);
+      try {
+        player.loop = true;
+        player.play();
+      } catch (error) {
+        // Ignorar errores al reproducir
+      }
     } else {
-      player.pause();
+      try {
+        player.pause();
+      } catch (error) {
+        // Ignorar errores al pausar
+      }
+      audioManager.clearCurrentMusic(player);
     }
 
     return () => {
-      if (player) {
-        player.pause();
-      }
+      // No hacer cleanup aquí porque el player puede estar liberado
+      // El cleanup se maneja automáticamente cuando el componente se desmonta
     };
   }, [player, source, shouldPlay]);
 }
@@ -51,9 +66,10 @@ export function useSoundEffect(source: any) {
 
     try {
       player.loop = false;
-      player.replay();
+      // Reproducir sin detener primero para evitar problemas
+      player.play();
     } catch (error) {
-      console.warn('Error playing sound effect:', error);
+      // Ignorar errores silenciosamente
     }
   }, [player]);
 

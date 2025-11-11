@@ -21,8 +21,12 @@ export function Card({ id, imageSource, isFlipped, isMatched, onPress, disabled,
 
   const handlePress = () => {
     if (disabled || isFlipped || isMatched) return;
-    playCardSelectSound();
+    // Llamar onPress primero para que la interacción sea inmediata
     onPress();
+    // Reproducir sonido de forma asíncrona para no bloquear
+    setTimeout(() => {
+      playCardSelectSound();
+    }, 0);
   };
 
   // Determinar si la carta está deshabilitada

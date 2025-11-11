@@ -17,6 +17,7 @@ import { GAME_LEVELS, GameLevel } from '@/constants/gameLevels';
 import { calculateScore } from '@/utils/score';
 import { GameColors } from '@/constants/gameColors';
 import { useBackgroundMusic, useSoundEffect } from '@/hooks/useAudio';
+import { audioManager } from '@/hooks/useAudioManager';
 
 export default function GameScreen() {
   const router = useRouter();
@@ -74,21 +75,68 @@ export default function GameScreen() {
     ? require('@/assets/music/DarkFactory.mp3')
     : require('@/assets/music/Pyramid.mp3');
   
-  // Reproducir música cuando termine el countdown y el juego haya comenzado
-  const shouldPlayMusic = !countdownActive && isGameStarted;
-  useBackgroundMusic(backgroundMusicSource, shouldPlayMusic);
-
   // Sonido al terminar el countdown
   const playStartSound = useSoundEffect(require('@/assets/sfx/startSound.wav'));
+  
+  // Estado para controlar cuándo empezar la música del nivel
+  const [shouldStartLevelMusic, setShouldStartLevelMusic] = useState(false);
+  const startSoundPlayedRef = useRef(false);
 
-  // Reproducir sonido cuando termine el countdown
+  // Reproducir sonido cuando termine el countdown y luego iniciar música
   const prevCountdownActiveRef = useRef(countdownActive);
+  const musicDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   useEffect(() => {
-    if (prevCountdownActiveRef.current && !countdownActive && isGameStarted) {
+    if (prevCountdownActiveRef.current && !countdownActive && isGameStarted && !startSoundPlayedRef.current) {
+      // Limpiar delay anterior si existe
+      if (musicDelayRef.current) {
+        clearTimeout(musicDelayRef.current);
+        musicDelayRef.current = null;
+      }
+      
+      // Reproducir startSound primero
       playStartSound();
+      startSoundPlayedRef.current = true;
+      
+      // Esperar un momento después del startSound para iniciar la música (startSound.wav dura ~1 segundo)
+      musicDelayRef.current = setTimeout(() => {
+        setShouldStartLevelMusic(true);
+        musicDelayRef.current = null;
+      }, 1000); // 1 segundo después del startSound para que termine de sonar
+      
+      return () => {
+        if (musicDelayRef.current) {
+          clearTimeout(musicDelayRef.current);
+          musicDelayRef.current = null;
+        }
+      };
     }
     prevCountdownActiveRef.current = countdownActive;
   }, [countdownActive, isGameStarted, playStartSound]);
+
+  // Reset cuando se reinicia el juego
+  useEffect(() => {
+    if (countdownActive) {
+      startSoundPlayedRef.current = false;
+      setShouldStartLevelMusic(false);
+    }
+  }, [countdownActive]);
+
+  // Detener cualquier música de fondo cuando se monta el juego
+  // Esto asegura que la música de Home/Niveles se detenga inmediatamente
+  useEffect(() => {
+    // Detener todas las músicas al montar el juego
+    audioManager.stopAllMusic();
+    
+    return () => {
+      // Al desmontar, la música se detendrá automáticamente
+    };
+  }, []);
+
+  // Reproducir música del nivel solo después del startSound
+  // Esto también detendrá automáticamente la música de Home/Niveles gracias al audioManager
+  const shouldPlayMusic = shouldStartLevelMusic && !countdownActive && isGameStarted;
+  useBackgroundMusic(backgroundMusicSource, shouldPlayMusic);
 
   // Debug: Verificar estado del juego
   useEffect(() => {
