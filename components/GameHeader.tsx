@@ -1,7 +1,8 @@
-import React from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
+import { ConfirmModal } from './ConfirmModal';
 
 type GameHeaderProps = {
   onExit: () => void;
@@ -9,44 +10,51 @@ type GameHeaderProps = {
 };
 
 export function GameHeader({ onExit, level }: GameHeaderProps) {
+  const [showExitModal, setShowExitModal] = useState(false);
+
   const handleExitPress = () => {
-    Alert.alert(
-      'Salir del Nivel',
-      '¿Estás seguro de que quieres salir? Tu progreso no se guardará.',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Salir',
-          style: 'destructive',
-          onPress: onExit,
-        },
-      ],
-      { cancelable: true }
-    );
+    setShowExitModal(true);
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onExit();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContent}>
-        <Pressable
-          onPress={handleExitPress}
-          style={({ pressed }) => [
-            styles.exitButton,
-            pressed && styles.exitButtonPressed,
-          ]}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text style={styles.exitButtonText}>← SALIR</Text>
-        </Pressable>
-        <View style={styles.levelContainer}>
-          <Text style={styles.levelText}>NIVEL {level}</Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.headerContent}>
+          <Pressable
+            onPress={handleExitPress}
+            style={({ pressed }) => [
+              styles.exitButton,
+              pressed && styles.exitButtonPressed,
+            ]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.exitButtonText}>← SALIR</Text>
+          </Pressable>
+          <View style={styles.levelContainer}>
+            <Text style={styles.levelText}>NIVEL {level}</Text>
+          </View>
+          <View style={styles.spacer} />
         </View>
-        <View style={styles.spacer} />
       </View>
-    </View>
+      <ConfirmModal
+        visible={showExitModal}
+        title="SALIR DEL NIVEL"
+        message="¿Estás seguro de que quieres salir? Tu progreso no se guardará."
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
+        confirmText="SALIR"
+        cancelText="CANCELAR"
+      />
+    </>
   );
 }
 
