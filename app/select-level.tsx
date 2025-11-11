@@ -10,9 +10,13 @@ import { GameFonts } from '@/constants/gameFonts';
 import { GameLevel } from '@/types/game';
 import { LEVEL_LABELS, LEVEL_DESCRIPTIONS } from '@/constants/gameLevels';
 import { Platform } from 'react-native';
+import { useBackgroundMusic } from '@/hooks/useAudio';
 
 export default function SelectLevelScreen() {
   const router = useRouter();
+
+  // Música de fondo
+  useBackgroundMusic(require('@/assets/music/DwarvenMine.mp3'), true);
 
   const handleLevelSelect = (level: GameLevel) => {
     router.push({
@@ -22,14 +26,15 @@ export default function SelectLevelScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.push('/');
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <ScrollView
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         scrollEnabled={true}
@@ -78,16 +83,22 @@ export default function SelectLevelScreen() {
               label="BACK"
               size="small"
               variant="gradient"
+              soundType="back"
               onPress={handleBack}
             />
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: GameColors.backgroundDark,
+  },
   container: {
     flex: 1,
   },

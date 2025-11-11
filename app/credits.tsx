@@ -6,6 +6,7 @@ import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
 import { GradientOverlay } from '@/components/GradientOverlay';
 import { PixelButton } from '@/components/PixelButton';
 import { CreditsContent } from '@/components/CreditsContent';
+import { GameColors } from '@/constants/gameColors';
 
 /**
  * Pantalla de créditos del juego
@@ -13,10 +14,11 @@ import { CreditsContent } from '@/components/CreditsContent';
  */
 export default function CreditsScreen() {
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <ScrollView
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -28,6 +30,7 @@ export default function CreditsScreen() {
               imageSource={require('@/assets/images/buttons/quitButton.png')}
               pressedImageSource={require('@/assets/images/buttons/quitButtonPressed.png')}
               variant="image"
+              soundType="back"
               onPress={() => {
                 router.back();
               }}
@@ -36,11 +39,16 @@ export default function CreditsScreen() {
           <CreditsContent />
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: GameColors.backgroundDark,
+  },
   container: {
     flex: 1,
   },

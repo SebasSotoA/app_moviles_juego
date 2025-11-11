@@ -21,6 +21,8 @@ export default function ResultsScreen() {
   const time = parseInt(params.time as string, 10) || 0;
   const attempts = parseInt(params.attempts as string, 10) || 0;
   const level = parseInt(params.level as string, 10) || 1;
+  const won = params.won === 'true';
+  const lives = parseInt(params.lives as string, 10) || 0;
 
   // Formatear tiempo como MM:SS
   const formatTime = (seconds: number): string => {
@@ -29,15 +31,23 @@ export default function ResultsScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handlePlayAgain = () => {
+    router.push({
+      pathname: '/game',
+      params: { level: level.toString() },
+    });
+  };
+
   const handleQuit = () => {
-    router.push('/');
+    router.push('/select-level');
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <ScrollView
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         scrollEnabled={true}
@@ -46,8 +56,10 @@ export default function ResultsScreen() {
       >
         <View style={styles.content}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>GAME OVER</Text>
-            <Text style={styles.subtitle}>Good luck on the next one</Text>
+            <Text style={styles.title}>{won ? 'VICTORY!' : 'GAME OVER'}</Text>
+            <Text style={styles.subtitle}>
+              {won ? 'Congratulations!' : 'Good luck on the next one'}
+            </Text>
           </View>
 
           <View style={styles.scoreSection}>
@@ -56,11 +68,12 @@ export default function ResultsScreen() {
 
           <View style={styles.statsSection}>
             <GameOverStatBadge icon="⏱️" label="Time" value={formatTime(time)} />
-            <GameOverStatBadge icon="❤️" label="Remaining Lives" value={`x${attempts}`} />
+            <GameOverStatBadge icon="🎯" label="Attempts" value={attempts.toString()} />
             <GameOverStatBadge icon="🏆" label="Difficulty" value={`Lvl. ${level}`} />
+            {!won && <GameOverStatBadge icon="❤️" label="Lives Remaining" value={`x${lives}`} />}
           </View>
 
-          {bestRecord && (
+          {bestRecord && won && (
             <View style={styles.recordSection}>
               <Text style={styles.recordTitle}>BEST RECORD</Text>
               <View style={styles.recordBadges}>
@@ -72,22 +85,43 @@ export default function ResultsScreen() {
           )}
 
           <View style={styles.buttonsContainer}>
-            <PixelButton
-              label="QUIT"
-              size="large"
-              imageSource={require('@/assets/images/buttons/quitTextButton.png')}
-              pressedImageSource={require('@/assets/images/buttons/quitTextButtonPressed.png')}
-              variant="image"
-              onPress={handleQuit}
-            />
+            <View style={styles.buttonRow}>
+              <View style={styles.buttonWrapper}>
+                <PixelButton
+                  label="PLAY"
+                  size="large"
+                  imageSource={require('@/assets/images/buttons/playButton.png')}
+                  pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
+                  variant="image"
+                  soundType="normal"
+                  onPress={handlePlayAgain}
+                />
+              </View>
+              <View style={styles.buttonWrapper}>
+                <PixelButton
+                  label=""
+                  size="small"
+                  imageSource={require('@/assets/images/buttons/quitButton.png')}
+                  pressedImageSource={require('@/assets/images/buttons/quitButtonPressed.png')}
+                  variant="image"
+                  soundType="back"
+                  onPress={handleQuit}
+                />
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: GameColors.backgroundDark,
+  },
   container: {
     flex: 1,
   },
@@ -179,6 +213,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 32,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  buttonWrapper: {
+    alignItems: 'center',
   },
 });
 

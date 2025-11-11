@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BackgroundCheckerboard } from '@/components/BackgroundCheckerboard';
@@ -9,6 +9,8 @@ import { StatsRow } from '@/components/StatsRow';
 import { CardGrid } from '@/components/CardGrid';
 import { PixelButton } from '@/components/PixelButton';
 import { Footer } from '@/components/Footer';
+import { GameColors } from '@/constants/gameColors';
+import { useBackgroundMusic } from '@/hooks/useAudio';
 
 /**
  * Pantalla principal del juego Memory Quest
@@ -17,96 +19,100 @@ import { Footer } from '@/components/Footer';
 export default function MainScreen() {
   const router = useRouter();
 
+  // Música de fondo
+  useBackgroundMusic(require('@/assets/music/DwarvenMine.mp3'), true);
+
   const handlePlayPress = () => {
     router.push('/select-level');
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={true}
-        bounces={false}
-        // Mejorar el manejo de eventos táctiles
-        scrollEventThrottle={16}
-        keyboardShouldPersistTaps="handled"
-      >
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.content}>
+        <View style={styles.topSection}>
           <Title />
           <StatsRow />
           <CardGrid />
-          <View style={styles.buttonsContainer}>
+        </View>
+        <View style={styles.buttonsContainer}>
+          <PixelButton
+            label="PLAY"
+            size="large"
+            imageSource={require('@/assets/images/buttons/playButton.png')}
+            pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
+            variant="image"
+            soundType="normal"
+            onPress={handlePlayPress}
+          />
+        </View>
+        <View style={styles.secondaryButtonsContainer}>
+          <View style={styles.buttonWrapper}>
             <PixelButton
-              label="PLAY"
-              size="large"
-              imageSource={require('@/assets/images/buttons/playButton.png')}
-              pressedImageSource={require('@/assets/images/buttons/playButtonPressed.png')}
+              label="CREDITS"
+              size="small"
+              imageSource={require('@/assets/images/buttons/creditsButton.png')}
+              pressedImageSource={require('@/assets/images/buttons/creditsButtonPressed.png')}
               variant="image"
-              onPress={handlePlayPress}
+              soundType="normal"
+              onPress={() => {
+                router.push({ pathname: '/credits' as any });
+              }}
             />
           </View>
-          <View style={styles.secondaryButtonsContainer}>
-            <View style={styles.buttonWrapper}>
-              <PixelButton
-                label="CREDITS"
-                size="small"
-                imageSource={require('@/assets/images/buttons/creditsButton.png')}
-                pressedImageSource={require('@/assets/images/buttons/creditsButtonPressed.png')}
-                variant="image"
-                onPress={() => {
-                  router.push({ pathname: '/credits' as any });
-                }}
-              />
-            </View>
-            <View style={styles.buttonWrapper}>
-              <PixelButton
-                label="MORE"
-                size="small"
-                imageSource={require('@/assets/images/buttons/moreButton.png')}
-                pressedImageSource={require('@/assets/images/buttons/moreButtonPressed.png')}
-                variant="image"
-                onPress={() => {
-                  // TODO: Navegar a pantalla de más opciones
-                  console.log('More pressed');
-                }}
-              />
-            </View>
+          <View style={styles.buttonWrapper}>
+            <PixelButton
+              label="MORE"
+              size="small"
+              imageSource={require('@/assets/images/buttons/moreButton.png')}
+              pressedImageSource={require('@/assets/images/buttons/moreButtonPressed.png')}
+              variant="image"
+              soundType="normal"
+              onPress={() => {
+                // TODO: Navegar a pantalla de más opciones
+                console.log('More pressed');
+              }}
+            />
           </View>
-          <Footer />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        <Footer />
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: GameColors.backgroundDark,
+  },
   container: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-  },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    justifyContent: 'space-between',
+  },
+  topSection: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100%',
-    paddingVertical: 32,
+    justifyContent: 'flex-start',
+    paddingTop: 16,
   },
   buttonsContainer: {
-    marginTop: 24,
-    marginBottom: 12,
     alignItems: 'center',
+    marginVertical: 12,
   },
   secondaryButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   buttonWrapper: {
     marginHorizontal: 6,

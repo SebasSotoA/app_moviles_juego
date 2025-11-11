@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollView, StyleSheet, View, Dimensions, Platform, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -15,6 +15,8 @@ import { useGame } from '@/hooks/useGame';
 import { useScore } from '@/hooks/useScore';
 import { GAME_LEVELS, GameLevel } from '@/constants/gameLevels';
 import { calculateScore } from '@/utils/score';
+import { GameColors } from '@/constants/gameColors';
+import { useBackgroundMusic, useSoundEffect } from '@/hooks/useAudio';
 
 export default function GameScreen() {
   const router = useRouter();
@@ -28,14 +30,19 @@ export default function GameScreen() {
   // Estado para mensaje de éxito
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+  // Callback para ocultar el mensaje de éxito
+  const handleHideSuccessMessage = useCallback(() => {
+    setShowSuccessMessage(false);
+  }, []);
+
   // Callback cuando se encuentra un par
-  const handlePairFound = () => {
+  const handlePairFound = useCallback(() => {
     setShowSuccessMessage(true);
     // Feedback háptico en móvil
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-  };
+  }, []);
 
   // Callback para salir del nivel
   const handleExit = () => {
@@ -51,12 +58,37 @@ export default function GameScreen() {
     isGameStarted,
     countdownActive,
     flippedCardsCount,
+    lives,
+    isGameLost,
     handleCardPress,
     completeCountdown,
   } = useGame(validLevel, handlePairFound);
 
   const { calculateAndSaveScore } = useScore();
   const hasNavigatedRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const navigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Música de fondo según el nivel
+  const backgroundMusicSource = validLevel === 3 
+    ? require('@/assets/music/DarkFactory.mp3')
+    : require('@/assets/music/Pyramid.mp3');
+  
+  // Reproducir música cuando termine el countdown y el juego haya comenzado
+  const shouldPlayMusic = !countdownActive && isGameStarted;
+  useBackgroundMusic(backgroundMusicSource, shouldPlayMusic);
+
+  // Sonido al terminar el countdown
+  const playStartSound = useSoundEffect(require('@/assets/sfx/startSound.wav'));
+
+  // Reproducir sonido cuando termine el countdown
+  const prevCountdownActiveRef = useRef(countdownActive);
+  useEffect(() => {
+    if (prevCountdownActiveRef.current && !countdownActive && isGameStarted) {
+      playStartSound();
+    }
+    prevCountdownActiveRef.current = countdownActive;
+  }, [countdownActive, isGameStarted, playStartSound]);
 
   // Debug: Verificar estado del juego
   useEffect(() => {
@@ -77,40 +109,152 @@ export default function GameScreen() {
     ? calculateScore(timeUsed, attempts, validLevel)
     : 0;
 
-  // Cuando el juego se complete, navegar a resultados
+  // Limpiar timeouts cuando el componente se desmonte
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+        navigationTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Ocultar mensaje de éxito cuando el juego termina, se pierde, o durante countdown
+  useEffect(() => {
+    if (isGameComplete || isGameLost || countdownActive || !isGameStarted) {
+      setShowSuccessMessage(false);
+    }
+  }, [isGameComplete, isGameLost, countdownActive, isGameStarted]);
+
+  // Cuando el juego se complete (victoria), navegar a resultados
   // Solo si el juego ha comenzado (después del countdown)
   useEffect(() => {
-    if (isGameComplete && isGameStarted && !countdownActive && timeUsed > 0 && attempts > 0 && !hasNavigatedRef.current) {
+    if (isGameComplete && isGameStarted && !countdownActive && !isGameLost && timeUsed > 0 && attempts > 0 && !hasNavigatedRef.current && isMountedRef.current) {
       hasNavigatedRef.current = true;
       
+      // Limpiar timeout anterior si existe
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+        navigationTimeoutRef.current = null;
+      }
+      
       const handleGameComplete = async () => {
+        // Verificar que el componente aún esté montado y no se haya navegado ya
+        if (!isMountedRef.current || !hasNavigatedRef.current) {
+          return;
+        }
+        
         try {
-          const result = await calculateAndSaveScore(timeUsed, attempts, validLevel);
-          router.push({
-            pathname: '/results',
-            params: {
-              score: result.score.toString(),
-              time: timeUsed.toString(),
-              attempts: attempts.toString(),
-              level: validLevel.toString(),
-              isNewRecord: result.isNewRecord.toString(),
-            },
-          });
+          const result = await calculateAndSaveScore(timeUsed, attempts, validLevel, true, lives);
+          
+          // Verificar nuevamente antes de navegar
+          if (isMountedRef.current && hasNavigatedRef.current) {
+            hasNavigatedRef.current = false; // Marcar como navegando para evitar doble navegación
+            try {
+              router.replace({
+                pathname: '/results',
+                params: {
+                  score: result.score.toString(),
+                  time: timeUsed.toString(),
+                  attempts: attempts.toString(),
+                  level: validLevel.toString(),
+                  isNewRecord: result.isNewRecord.toString(),
+                  won: 'true',
+                  lives: lives.toString(),
+                },
+              });
+            } catch (navError) {
+              console.error('Error navigating to results:', navError);
+            }
+          }
         } catch (error) {
           console.error('Error completing game:', error);
-          hasNavigatedRef.current = false; // Reset para permitir reintento
+          if (isMountedRef.current) {
+            hasNavigatedRef.current = false; // Reset para permitir reintento solo si está montado
+          }
         }
       };
       
       // Pequeño delay para permitir que las animaciones terminen
-      const timeout = setTimeout(() => {
+      navigationTimeoutRef.current = setTimeout(() => {
         handleGameComplete();
-      }, 500);
-      
-      return () => clearTimeout(timeout);
+      }, 800);
     }
+    
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+        navigationTimeoutRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGameComplete, isGameStarted, countdownActive, timeUsed, attempts, validLevel]);
+  }, [isGameComplete, isGameStarted, countdownActive, isGameLost, timeUsed, attempts, validLevel, lives]);
+
+  // Cuando el juego se pierda (sin vidas), navegar a resultados
+  useEffect(() => {
+    if (isGameLost && isGameStarted && !countdownActive && !hasNavigatedRef.current && isMountedRef.current) {
+      hasNavigatedRef.current = true;
+      
+      // Limpiar timeout anterior si existe
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+        navigationTimeoutRef.current = null;
+      }
+      
+      const handleGameLost = async () => {
+        // Verificar que el componente aún esté montado y no se haya navegado ya
+        if (!isMountedRef.current || !hasNavigatedRef.current) {
+          return;
+        }
+        
+        try {
+          // Calcular puntaje incluso si perdió (será 0 o muy bajo)
+          const result = await calculateAndSaveScore(timeUsed, attempts, validLevel, false, lives);
+          
+          // Verificar nuevamente antes de navegar
+          if (isMountedRef.current && hasNavigatedRef.current) {
+            hasNavigatedRef.current = false; // Marcar como navegando para evitar doble navegación
+            try {
+              router.replace({
+                pathname: '/results',
+                params: {
+                  score: result.score.toString(),
+                  time: timeUsed.toString(),
+                  attempts: attempts.toString(),
+                  level: validLevel.toString(),
+                  isNewRecord: 'false',
+                  won: 'false',
+                  lives: lives.toString(),
+                },
+              });
+            } catch (navError) {
+              console.error('Error navigating to results:', navError);
+            }
+          }
+        } catch (error) {
+          console.error('Error handling game loss:', error);
+          if (isMountedRef.current) {
+            hasNavigatedRef.current = false; // Reset para permitir reintento solo si está montado
+          }
+        }
+      };
+      
+      // Pequeño delay para permitir que las animaciones terminen
+      navigationTimeoutRef.current = setTimeout(() => {
+        handleGameLost();
+      }, 1000); // Delay un poco más largo para que se vea que perdió
+    }
+    
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+        navigationTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGameLost, isGameStarted, countdownActive, timeUsed, attempts, validLevel, lives]);
 
   // Calcular dimensiones del grid (responsive para móvil)
   const screenWidth = Dimensions.get('window').width;
@@ -151,19 +295,20 @@ export default function GameScreen() {
   // El componente debe renderizarse siempre y mostrar las cartas cuando estén disponibles
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <View style={styles.wrapper}>
       <BackgroundCheckerboard />
       <GradientOverlay />
-      <View style={styles.gameContent}>
+      {countdownActive && (
+        <Countdown onComplete={completeCountdown} duration={1} />
+      )}
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.gameContent}>
         <GameHeader onExit={handleExit} level={validLevel} />
         <SuccessMessage
           visible={showSuccessMessage}
-          onHide={() => setShowSuccessMessage(false)}
-          duration={1000}
+          onHide={handleHideSuccessMessage}
+          duration={600}
         />
-        {countdownActive && (
-          <Countdown onComplete={completeCountdown} duration={1} />
-        )}
         <View style={styles.mainContent}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
@@ -174,7 +319,7 @@ export default function GameScreen() {
             style={styles.scrollView}
           >
             <View style={styles.content}>
-              <GameStatsRow time={timeUsed} score={currentScore} level={validLevel} />
+              <GameStatsRow time={timeUsed} score={currentScore} level={validLevel} lives={lives} />
 
               {cards.length > 0 && calculatedCardWidth > 0 && calculatedCardHeight > 0 ? (
                 <View style={styles.cardsContainer}>
@@ -226,11 +371,16 @@ export default function GameScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: GameColors.backgroundDark,
+  },
   container: {
     flex: 1,
   },
