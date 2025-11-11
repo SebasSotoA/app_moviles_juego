@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { GameColors } from '@/constants/gameColors';
 import { GameFonts } from '@/constants/gameFonts';
 import { ConfirmModal } from './ConfirmModal';
+import { PixelButton } from './PixelButton';
 
 type GameHeaderProps = {
   onExit: () => void;
@@ -29,16 +30,17 @@ export function GameHeader({ onExit, level }: GameHeaderProps) {
     <>
       <View style={styles.container}>
         <View style={styles.headerContent}>
-          <Pressable
-            onPress={handleExitPress}
-            style={({ pressed }) => [
-              styles.exitButton,
-              pressed && styles.exitButtonPressed,
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.exitButtonText}>← SALIR</Text>
-          </Pressable>
+          <View style={styles.exitButtonContainer}>
+            <PixelButton
+              label=""
+              size="small"
+              imageSource={require('@/assets/images/buttons/quitTextButton.png')}
+              pressedImageSource={require('@/assets/images/buttons/quitTextButtonPressed.png')}
+              variant="image"
+              soundType="back"
+              onPress={handleExitPress}
+            />
+          </View>
           <View style={styles.levelContainer}>
             <Text style={styles.levelText}>NIVEL {level}</Text>
           </View>
@@ -81,47 +83,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-  exitButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 4,
-    backgroundColor: GameColors.gradient.colors[0],
-    borderWidth: 2,
-    borderColor: GameColors.borderDark,
-    ...Platform.select({
-      web: {
-        boxShadow: '2px 2px 0px rgba(0, 0, 0, 0.3)',
-      } as any,
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 0,
-        elevation: 3,
-      },
-    }),
-  },
-  exitButtonPressed: {
-    transform: [{ translateY: 2 }],
-    opacity: 0.9,
-  },
-  exitButtonText: {
-    fontFamily: GameFonts.pixelFont,
-    fontSize: Platform.select({
-      web: 10,
-      default: 8,
-    }),
-    color: GameColors.textCream,
-    ...Platform.select({
-      web: {
-        textShadow: '1px 1px 0px rgba(0, 0, 0, 0.8)',
-      } as any,
-      default: {
-        textShadowColor: 'rgba(0, 0, 0, 0.8)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 0,
-      },
-    }),
+  exitButtonContainer: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   levelContainer: {
     flex: 1,

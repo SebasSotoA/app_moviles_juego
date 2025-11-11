@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, Text, View, Platform } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
-  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { GameFonts } from '@/constants/gameFonts';
@@ -17,62 +15,95 @@ type SuccessMessageProps = {
   duration?: number;
 };
 
-export function SuccessMessage({ visible, onHide, duration = 1000 }: SuccessMessageProps) {
+export function SuccessMessage({ visible, onHide, duration = 2000 }: SuccessMessageProps) {
   const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.5);
-  const translateY = useSharedValue(-20);
   const [shouldRender, setShouldRender] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onHideRef = useRef(onHide);
+  const isMountedRef = useRef(true);
+  const visibleRef = useRef(visible);
+
+  // Función para ocultar el mensaje
+  const hideMessage = () => {
+    if (isMountedRef.current) {
+      setShouldRender(false);
+      if (onHideRef.current) {
+        onHideRef.current();
+      }
+    }
+  };
+
+  // Función para ocultar sin callback
+  const hideMessageOnly = () => {
+    if (isMountedRef.current) {
+      setShouldRender(false);
+    }
+  };
+
+  // Actualizar la ref cuando cambie el callback
+  useEffect(() => {
+    onHideRef.current = onHide;
+  }, [onHide]);
+
+  // Actualizar la ref de visible
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
+
+  // Cleanup al desmontar
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
-    if (visible) {
-      // Resetear valores antes de mostrar
+    // Limpiar timeout anterior
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (visible && isMountedRef.current) {
+      // Resetear y mostrar
       opacity.value = 0;
-      scale.value = 0.5;
-      translateY.value = -20;
       setShouldRender(true);
       
-      // Animación de entrada
-      const enterTimeout = setTimeout(() => {
-        opacity.value = withTiming(1, { duration: 200 });
-        scale.value = withSpring(1.2, { damping: 12, stiffness: 150 });
-        translateY.value = withSpring(0, { damping: 12, stiffness: 150 });
-      }, 50);
+      // Fade in suave
+      opacity.value = withTiming(1, { duration: 150 });
 
-      // Animación de salida después de la duración
-      const exitTimeout = setTimeout(() => {
-        opacity.value = withTiming(0, { duration: 200 });
-        scale.value = withTiming(0.8, { duration: 200 });
-        translateY.value = withTiming(-30, { duration: 200 }, () => {
-          runOnJS(() => {
-            setShouldRender(false);
-            if (onHide) {
-              onHide();
-            }
-          })();
+      // Fade out y ocultar después de la duración (solo si aún está visible)
+      timeoutRef.current = setTimeout(() => {
+        if (!isMountedRef.current || !visibleRef.current) {
+          return;
+        }
+        opacity.value = withTiming(0, { duration: 150 }, () => {
+          runOnJS(hideMessage)();
         });
-      }, duration + 250);
+      }, duration);
 
       return () => {
-        clearTimeout(enterTimeout);
-        clearTimeout(exitTimeout);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
       };
-    } else if (shouldRender) {
-      // Si se oculta manualmente, animar salida inmediatamente
-      opacity.value = withTiming(0, { duration: 150 });
-      scale.value = withTiming(0.8, { duration: 150 });
-      translateY.value = withTiming(-30, { duration: 150 }, () => {
-        runOnJS(setShouldRender)(false);
+    } else if (!visible && shouldRender && isMountedRef.current) {
+      // Si se oculta manualmente (se presiona otra tarjeta), fade out inmediatamente
+      opacity.value = withTiming(0, { duration: 150 }, () => {
+        runOnJS(hideMessageOnly)();
       });
     }
-  }, [visible, duration, onHide, opacity, scale, translateY, shouldRender]);
+  }, [visible, duration, opacity, shouldRender]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
-      transform: [
-        { scale: scale.value },
-        { translateY: translateY.value },
-      ],
     };
   });
 
@@ -93,59 +124,59 @@ export function SuccessMessage({ visible, onHide, duration = 1000 }: SuccessMess
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: Platform.select({
-      web: '10%',
-      default: '8%',
+    bottom: Platform.select({
+      web: 120,
+      default: 110,
     }),
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
+    zIndex: 500,
     pointerEvents: 'none',
   },
   messageContainer: {
     backgroundColor: GameColors.gradient.colors[4], // '#FFF2DB'
     paddingHorizontal: Platform.select({
-      web: 20,
-      default: 14,
+      web: 12,
+      default: 10,
     }),
     paddingVertical: Platform.select({
-      web: 10,
-      default: 8,
+      web: 6,
+      default: 5,
     }),
-    borderRadius: 6,
-    borderWidth: 3,
+    borderRadius: 4,
+    borderWidth: 2,
     borderColor: GameColors.borderDark,
     opacity: 0.95,
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
       } as any,
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 4,
       },
     }),
   },
   messageText: {
     fontFamily: GameFonts.pixelFont,
     fontSize: Platform.select({
-      web: 14,
-      default: 12,
+      web: 10,
+      default: 9,
     }),
     color: GameColors.textOutline,
     textAlign: 'center',
     ...Platform.select({
       web: {
-        textShadow: '2px 2px 0px rgba(0, 0, 0, 0.6)',
+        textShadow: '1px 1px 0px rgba(0, 0, 0, 0.6)',
       } as any,
       default: {
         textShadowColor: 'rgba(0, 0, 0, 0.6)',
-        textShadowOffset: { width: 2, height: 2 },
+        textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 0,
       },
     }),

@@ -6,13 +6,14 @@ type GameStatsRowProps = {
   time: number; // en segundos
   score: number;
   level: number;
+  lives?: number; // vidas restantes
 };
 
 /**
  * Componente que renderiza la fila de estadísticas del juego
  * Time, Score, Level con valores dinámicos
  */
-export function GameStatsRow({ time, score, level }: GameStatsRowProps) {
+export function GameStatsRow({ time, score, level, lives }: GameStatsRowProps) {
   // Formatear tiempo como MM:SS
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -28,9 +29,11 @@ export function GameStatsRow({ time, score, level }: GameStatsRowProps) {
       <View style={styles.badge}>
         <StatsBadge icon="⭐" value={score.toString()} />
       </View>
-      <View style={styles.badge}>
-        <StatsBadge icon="🏆" value={`LV.${level}`} />
-      </View>
+      {lives !== undefined && (
+        <View style={styles.badge}>
+          <StatsBadge icon="❤️" value={`x${lives}`} />
+        </View>
+      )}
     </View>
   );
 }

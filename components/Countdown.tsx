@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GameFonts } from '@/constants/gameFonts';
 import { GameColors } from '@/constants/gameColors';
+import { useSoundEffect } from '@/hooks/useAudio';
 
 type CountdownProps = {
   onComplete: () => void;
@@ -22,9 +23,13 @@ export function Countdown({ onComplete, duration = 1 }: CountdownProps) {
   const scale = useSharedValue(0.5);
   const opacity = useSharedValue(0);
   const rotation = useSharedValue(0);
+  const playCardAppearSound = useSoundEffect(require('@/assets/sfx/cardAppear.wav'));
 
   useEffect(() => {
     if (count > 0 && isVisible) {
+      // Reproducir sonido cuando aparece el número
+      playCardAppearSound();
+
       // Animación de entrada
       scale.value = withSequence(
         withSpring(1.5, { damping: 8, stiffness: 100 }),
@@ -56,7 +61,7 @@ export function Countdown({ onComplete, duration = 1 }: CountdownProps) {
 
       return () => clearTimeout(timeout);
     }
-  }, [count, duration, onComplete, scale, opacity, rotation, isVisible]);
+  }, [count, duration, onComplete, scale, opacity, rotation, isVisible, playCardAppearSound]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -88,6 +93,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    width: '100%',
+    height: '100%',
     zIndex: 1000,
     justifyContent: 'center',
     alignItems: 'center',

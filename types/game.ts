@@ -20,6 +20,8 @@ export interface GameState {
   isGameComplete: boolean;
   isGameStarted: boolean; // para iniciar el timer
   countdownActive: boolean; // para el contador 3-2-1
+  lives: number; // vidas restantes
+  isGameLost: boolean; // true si el jugador perdió (se quedó sin vidas)
 }
 
 export interface GameResult {
@@ -28,6 +30,8 @@ export interface GameResult {
   attempts: number;
   level: GameLevel;
   isNewRecord: boolean;
+  won: boolean; // true si el jugador ganó, false si perdió
+  lives: number; // vidas restantes al finalizar
 }
 
 export interface BestRecord {

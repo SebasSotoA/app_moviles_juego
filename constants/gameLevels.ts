@@ -11,6 +11,7 @@ export interface LevelConfig {
   multiplier: number;
   columns: number;
   rows: number;
+  initialLives: number;
 }
 
 export const GAME_LEVELS: Record<GameLevel, LevelConfig> = {
@@ -21,6 +22,7 @@ export const GAME_LEVELS: Record<GameLevel, LevelConfig> = {
     multiplier: 1,
     columns: 3,
     rows: 4,
+    initialLives: 5,
   },
   2: {
     level: 2,
@@ -29,6 +31,7 @@ export const GAME_LEVELS: Record<GameLevel, LevelConfig> = {
     multiplier: 2,
     columns: 4,
     rows: 6,
+    initialLives: 7,
   },
   3: {
     level: 3,
@@ -37,6 +40,7 @@ export const GAME_LEVELS: Record<GameLevel, LevelConfig> = {
     multiplier: 3,
     columns: 5,
     rows: 8,
+    initialLives: 9,
   },
 };
 
