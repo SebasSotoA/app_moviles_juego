@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, GameLevel, GameState } from '@/types/game';
 import { generateDeck } from '@/utils/cards';
+import { GAME_LEVELS } from '@/constants/gameLevels';
 
 export function useGame(level: GameLevel, onPairFound?: () => void) {
   const [gameState, setGameState] = useState<GameState>({
@@ -30,7 +31,8 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
   const initializeGame = useCallback(() => {
     try {
       const cards = generateDeck(level);
-      console.log(`[useGame] Inicializando juego nivel ${level}, cartas generadas:`, cards.length);
+      const initialLives = GAME_LEVELS[level].initialLives;
+      console.log(`[useGame] Inicializando juego nivel ${level}, cartas generadas:`, cards.length, `vidas: ${initialLives}`);
       setGameState({
         cards,
         flippedCards: [],
@@ -39,6 +41,8 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
         isGameComplete: false,
         isGameStarted: false,
         countdownActive: true, // Iniciar con countdown activo
+        lives: initialLives,
+        isGameLost: false,
       });
     } catch (error) {
       console.error('[useGame] Error al inicializar el juego:', error);
@@ -61,7 +65,7 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
 
   // Timer
   useEffect(() => {
-    if (gameState.isGameStarted && !gameState.isGameComplete) {
+    if (gameState.isGameStarted && !gameState.isGameComplete && !gameState.isGameLost) {
       timerIntervalRef.current = setInterval(() => {
         setGameState((prev) => ({
           ...prev,
@@ -80,7 +84,7 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, [gameState.isGameStarted, gameState.isGameComplete]);
+  }, [gameState.isGameStarted, gameState.isGameComplete, gameState.isGameLost]);
 
 
   // Función para completar el countdown
@@ -142,7 +146,10 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
               attempts: prev.attempts + 1,
             };
           } else {
-            // No es una pareja - voltearlas después de un delay
+            // No es una pareja - restar una vida y voltearlas después de un delay
+            const newLives = prev.lives - 1;
+            const isGameLost = newLives <= 0;
+            
             // Limpiar timeout anterior si existe
             if (flipTimeoutRef.current) {
               clearTimeout(flipTimeoutRef.current);
@@ -164,6 +171,8 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
               cards: updatedCards,
               flippedCards: newFlippedCards,
               attempts: prev.attempts + 1,
+              lives: newLives,
+              isGameLost: isGameLost,
             };
           }
         }
@@ -200,6 +209,8 @@ export function useGame(level: GameLevel, onPairFound?: () => void) {
     isGameStarted: gameState.isGameStarted,
     countdownActive: gameState.countdownActive,
     flippedCardsCount: gameState.flippedCards.length,
+    lives: gameState.lives,
+    isGameLost: gameState.isGameLost,
     handleCardPress,
     completeCountdown,
     resetGame,

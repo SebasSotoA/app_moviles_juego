@@ -30,7 +30,9 @@ export function useScore() {
     async (
       timeUsed: number,
       attempts: number,
-      level: number
+      level: number,
+      won: boolean = true,
+      lives: number = 0
     ): Promise<GameResult> => {
       const score = calculateScore(timeUsed, attempts, level as 1 | 2 | 3);
       const currentResult: GameResult = {
@@ -39,6 +41,8 @@ export function useScore() {
         attempts,
         level: level as 1 | 2 | 3,
         isNewRecord: false,
+        won,
+        lives,
       };
 
       // Comparar con el mejor récord actual (cargar si no está cargado)
