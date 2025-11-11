@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatsBadge } from './StatsBadge';
 import { useScore } from '@/hooks/useScore';
+import { styles } from '@/styles/components/StatsRow.styles';
 
 /**
  * Formatea segundos a formato MM:SS
