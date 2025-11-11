@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { Image } from 'expo-image';
+import { styles } from '@/styles/components/CardGrid.styles';
 
 /**
  * Componente que renderiza un grid 2x2 de cartas
@@ -45,29 +46,4 @@ export function CardGrid() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  cardContainer: {
-    width: 90,
-    height: 125,
-    borderRadius: 6,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  card: {
-    width: '100%',
-    height: '100%',
-  },
-});
 

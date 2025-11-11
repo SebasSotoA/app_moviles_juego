@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { StatsBadge } from './StatsBadge';
+import { styles } from '@/styles/components/GameStatsRow.styles';
 
 type GameStatsRowProps = {
   time: number; // en segundos
@@ -37,17 +38,3 @@ export function GameStatsRow({ time, score, level, lives }: GameStatsRowProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  badge: {
-    marginHorizontal: 6,
-  },
-});
-

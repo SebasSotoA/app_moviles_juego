@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GameColors } from '@/constants/gameColors';
+import { styles } from '@/styles/components/GradientOverlay.styles';
 
 /**
  * Componente que renderiza un overlay con gradiente vertical
@@ -19,17 +20,4 @@ export function GradientOverlay() {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  gradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    opacity: 0.08, // Opacidad muy baja para que el checkerboard sea más visible
-  },
-});
 

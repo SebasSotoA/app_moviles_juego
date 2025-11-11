@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { StatsBadge } from './StatsBadge';
+import { styles } from '@/styles/components/StatsRow.styles';
 
 /**
  * Componente que renderiza la fila de estadísticas
@@ -21,17 +22,3 @@ export function StatsRow() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  badge: {
-    marginHorizontal: 6,
-  },
-});
-

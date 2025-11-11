@@ -1,14 +1,9 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, Text as SvgText, TSpan } from 'react-native-svg';
 import { GameFonts } from '@/constants/gameFonts';
+import { styles } from '@/styles/components/Title.styles';
 
-/**
- * Componente del título del juego
- * "Mobile dev's MEMORY QUEST"
- * Fuente pixelada PressStart2P con estilos específicos
- * Gradiente vertical para "MEMORY QUEST" con efecto 3D
- */
 export function Title() {
   // Dimensiones para los SVG - anchos aumentados para evitar recorte
   const subtitleWidth = 300;
@@ -95,33 +90,3 @@ export function Title() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 24,
-  },
-  subtitleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 36,
-    marginBottom: 4,
-    overflow: 'visible',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
-    marginBottom: 4,
-    overflow: 'visible',
-  },
-  underline: {
-    width: 130,
-    height: 2,
-    backgroundColor: '#4CAF50',
-    marginTop: 8,
-    borderRadius: 1,
-  },
-});
-
